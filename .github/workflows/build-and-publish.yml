@@ -1,0 +1,32 @@
+name: Build zip file and create release
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Build Zip file
+        uses: thedoctor0/zip-release@0.7.6
+        with:
+          type: "zip"
+          filename: "FS25_realismAddon_gearbox.zip"
+          exclusions: "*.git* *README*"
+
+      - name: Get Version
+        id: get_version
+        run: echo "version=$(grep '<version>' modDesc.xml | sed -e 's/<\/*version>//g' -e 's/^[ \t]*//')" >> $GITHUB_ENV
+
+      - name: Upload Release
+        uses: ncipollo/release-action@v1.20.0
+        with:
+          artifacts: "FS25_realismAddon_gearbox.zip"
+          tag: "${{ env.version }}"
+          name: "RealismAddon Gearbox for FS25 v${{ env.version }}"
+          generateReleaseNotes: "false"
+          skipIfReleaseExists: "true"
