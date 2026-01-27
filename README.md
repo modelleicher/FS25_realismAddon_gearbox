@@ -38,6 +38,10 @@ Download FS25_realismAddon_gearbox.zip from the releases section and put it into
 
 # Changelog in FS25
 
+###### V 0.9.0.6
+- added MB Trac 700-900 and Highland Fishing Fastrac 2000 Configs (also fixed steering angle for Fastrac 2000)
+- MoreRealistic Mod compatible
+
 ###### V 0.9.0.5
 - fixed automatic transmissions not working
 - added automatic clutch opening when stopped on automatic transmissions so they can be used without clutch still 

@@ -5,6 +5,118 @@
 
 	<test value="Hello" />
 
+  	<editFile xmlFilename="pdlc/highlandsFishingPack/vehicles/jcb/fastrac2000/fastrac2000.xml">
+        <attributes>
+            <attribute path="vehicle.motorized.motorConfigurations.motorConfiguration(0).transmission.forwardGear(0)#maxSpeed" value="nil"/>           
+            <attribute path="vehicle.motorized.motorConfigurations.motorConfiguration(0).transmission.forwardGear(1)#maxSpeed" value="nil"/>           
+            <attribute path="vehicle.motorized.motorConfigurations.motorConfiguration(0).transmission.forwardGear(2)#maxSpeed" value="nil"/>           
+            <attribute path="vehicle.motorized.motorConfigurations.motorConfiguration(0).transmission.forwardGear(3)#maxSpeed" value="nil"/>           
+            <attribute path="vehicle.motorized.motorConfigurations.motorConfiguration(0).transmission.forwardGear(4)#maxSpeed" value="nil"/>           
+            <attribute path="vehicle.motorized.motorConfigurations.motorConfiguration(0).transmission.forwardGear(5)#maxSpeed" value="nil"/>           
+            <attribute path="vehicle.motorized.motorConfigurations.motorConfiguration(0).transmission.forwardGear(6)#maxSpeed" value="nil"/>           
+            <attribute path="vehicle.motorized.motorConfigurations.motorConfiguration(0).transmission.forwardGear(7)#maxSpeed" value="nil"/>           
+            <attribute path="vehicle.motorized.motorConfigurations.motorConfiguration(0).transmission.forwardGear(8)#maxSpeed" value="nil"/>           
+            <attribute path="vehicle.motorized.motorConfigurations.motorConfiguration(0).transmission.forwardGear(9)#maxSpeed" value="nil"/>           
+            <attribute path="vehicle.motorized.motorConfigurations.motorConfiguration(0).transmission.forwardGear(10)#maxSpeed" value="nil"/>   
+
+			<!-- 6 main gears 7kph to 50kph -->
+            <attribute path="vehicle.motorized.motorConfigurations.motorConfiguration(0).transmission.forwardGear(0)#maxSpeed" value="6.59"/>           
+            <attribute path="vehicle.motorized.motorConfigurations.motorConfiguration(0).transmission.forwardGear(1)#maxSpeed" value="11.5"/>           
+            <attribute path="vehicle.motorized.motorConfigurations.motorConfiguration(0).transmission.forwardGear(2)#maxSpeed" value="18.17"/>           
+            <attribute path="vehicle.motorized.motorConfigurations.motorConfiguration(0).transmission.forwardGear(3)#maxSpeed" value="27.0"/>           
+            <attribute path="vehicle.motorized.motorConfigurations.motorConfiguration(0).transmission.forwardGear(4)#maxSpeed" value="38.9"/>           
+            <attribute path="vehicle.motorized.motorConfigurations.motorConfiguration(0).transmission.forwardGear(5)#maxSpeed" value="50.5"/> 		
+
+            <attribute path="vehicle.motorized.motorConfigurations.motorConfiguration(0).transmission.forwardGear(0)#name" value="1"/>
+            <attribute path="vehicle.motorized.motorConfigurations.motorConfiguration(0).transmission.forwardGear(1)#name" value="2"/>
+            <attribute path="vehicle.motorized.motorConfigurations.motorConfiguration(0).transmission.forwardGear(2)#name" value="3"/>
+            <attribute path="vehicle.motorized.motorConfigurations.motorConfiguration(0).transmission.forwardGear(3)#name" value="4"/>			
+            <attribute path="vehicle.motorized.motorConfigurations.motorConfiguration(0).transmission.forwardGear(4)#name" value="5"/>			
+            <attribute path="vehicle.motorized.motorConfigurations.motorConfiguration(0).transmission.forwardGear(5)#name" value="6"/>		
+			
+            <attribute path="vehicle.motorized.motorConfigurations.motorConfiguration(0).transmission.forwardGear(0)#actionName" value="SHIFT_GEAR_SELECT_1"/>		
+            <attribute path="vehicle.motorized.motorConfigurations.motorConfiguration(0).transmission.forwardGear(1)#actionName" value="SHIFT_GEAR_SELECT_2"/>		
+            <attribute path="vehicle.motorized.motorConfigurations.motorConfiguration(0).transmission.forwardGear(2)#actionName" value="SHIFT_GEAR_SELECT_3"/>		
+            <attribute path="vehicle.motorized.motorConfigurations.motorConfiguration(0).transmission.forwardGear(3)#actionName" value="SHIFT_GEAR_SELECT_4"/>					
+            <attribute path="vehicle.motorized.motorConfigurations.motorConfiguration(0).transmission.forwardGear(4)#actionName" value="SHIFT_GEAR_SELECT_5"/>					
+            <attribute path="vehicle.motorized.motorConfigurations.motorConfiguration(0).transmission.forwardGear(5)#actionName" value="SHIFT_GEAR_SELECT_6"/>					
+
+			<!-- 4 ranges, reverse, low, medium and high -->
+            <attribute path="vehicle.motorized.motorConfigurations.motorConfiguration(0).transmission.groups#type" value="DEFAULT"/>
+            <attribute path="vehicle.motorized.motorConfigurations.motorConfiguration(0).transmission.groups#changeTime" value="0.5"/>			
+            <attribute path="vehicle.motorized.motorConfigurations.motorConfiguration(0).transmission.groups.group(0)#ratio" value="-0.347"/>  <!-- reverse -->					
+            <attribute path="vehicle.motorized.motorConfigurations.motorConfiguration(0).transmission.groups.group(1)#ratio" value="1.0"/>	  <!-- high -->	
+            <attribute path="vehicle.motorized.motorConfigurations.motorConfiguration(0).transmission.groups.group(2)#ratio" value="0.573"/>  <!-- medium -->				
+            <attribute path="vehicle.motorized.motorConfigurations.motorConfiguration(0).transmission.groups.group(3)#ratio" value="0.200"/>  <!-- low -->				
+		
+            <attribute path="vehicle.motorized.motorConfigurations.motorConfiguration(0).transmission.groups.group(0)#name" value="R"/>			
+            <attribute path="vehicle.motorized.motorConfigurations.motorConfiguration(0).transmission.groups.group(1)#name" value="High"/>			
+            <attribute path="vehicle.motorized.motorConfigurations.motorConfiguration(0).transmission.groups.group(2)#name" value="Med"/>			
+            <attribute path="vehicle.motorized.motorConfigurations.motorConfiguration(0).transmission.groups.group(3)#name" value="Low"/>	
+
+			<!-- 3 powershift ranges -->
+            <attribute path="vehicle.motorized.motorConfigurations.motorConfiguration(0).transmission.realismAddon_gearbox.groupsSecondSet#powershift" value="true"/>
+            <attribute path="vehicle.motorized.motorConfigurations.motorConfiguration(0).transmission.realismAddon_gearbox.groupsSecondSet.group(0)#ratio" value="0.694"/>
+            <attribute path="vehicle.motorized.motorConfigurations.motorConfiguration(0).transmission.realismAddon_gearbox.groupsSecondSet.group(0)#name" value="S"/>
+            <attribute path="vehicle.motorized.motorConfigurations.motorConfiguration(0).transmission.realismAddon_gearbox.groupsSecondSet.group(1)#ratio" value="0.834"/>
+            <attribute path="vehicle.motorized.motorConfigurations.motorConfiguration(0).transmission.realismAddon_gearbox.groupsSecondSet.group(1)#name" value="T"/>	
+            <attribute path="vehicle.motorized.motorConfigurations.motorConfiguration(0).transmission.realismAddon_gearbox.groupsSecondSet.group(2)#ratio" value="1.0"/>
+            <attribute path="vehicle.motorized.motorConfigurations.motorConfiguration(0).transmission.realismAddon_gearbox.groupsSecondSet.group(2)#name" value="H"/>				
+            <attribute path="vehicle.motorized.motorConfigurations.motorConfiguration(0).transmission.realismAddon_gearbox.groupsSecondSet.group(2)#isDefault" value="true"/>		
+
+			<!-- steering angle fix -->
+            <attribute path="vehicle.wheels.ackermannSteeringConfigurations.ackermannSteering#rotMax" value="33"/>				
+         </attributes>
+    </editFile>		  
+
+    <!-- small Trac Series has a weird transmission IRL since its basically a unimog -->
+    <!-- in high range 4. gear is blocked otherwise it would go to 78kph -->
+    <!-- 3rd gear is speed limited electronically (rpm limit on pump) otherwise it would go 50kph, so it does 40kph at reduced engine rpm in high range -->
+    <!-- second group is air activated splitter shifter that works as preselect (shift and as soon as you hit the clutch it shifts)-->
+	<editFile xmlFilename="pdlc/daimlerTruckPack/vehicles/mercedesBenz/trac900/trac900.xml">
+        <attributes>	
+		
+            <attribute path="vehicle.motorized.motorConfigurations.motorConfiguration(0).transmission.forwardGear(0)#maxSpeed" value="17.43"/>           
+            <attribute path="vehicle.motorized.motorConfigurations.motorConfiguration(0).transmission.forwardGear(1)#maxSpeed" value="30"/>           
+            <attribute path="vehicle.motorized.motorConfigurations.motorConfiguration(0).transmission.forwardGear(2)#maxSpeed" value="50.4"/>           
+            <attribute path="vehicle.motorized.motorConfigurations.motorConfiguration(0).transmission.forwardGear(3)#maxSpeed" value="78.5"/> 		
+		
+            <attribute path="vehicle.motorized.motorConfigurations.motorConfiguration(0).transmission.groups.group(0)#ratio" value="nil"/>  				
+            <attribute path="vehicle.motorized.motorConfigurations.motorConfiguration(0).transmission.groups.group(1)#ratio" value="nil"/>	  
+            <attribute path="vehicle.motorized.motorConfigurations.motorConfiguration(0).transmission.groups.group(2)#ratio" value="nil"/>  
+            <attribute path="vehicle.motorized.motorConfigurations.motorConfiguration(0).transmission.groups.group(3)#ratio" value="nil"/>  
+            <attribute path="vehicle.motorized.motorConfigurations.motorConfiguration(0).transmission.groups.group(4)#ratio" value="nil"/>  
+            <attribute path="vehicle.motorized.motorConfigurations.motorConfiguration(0).transmission.groups.group(5)#ratio" value="nil"/>  
+
+			
+			<attribute path="vehicle.motorized.motorConfigurations.motorConfiguration(0).transmission.groups#type" value="DEFAULT"/>
+            <attribute path="vehicle.motorized.motorConfigurations.motorConfiguration(0).transmission.groups#changeTime" value="0.5"/>			
+            <attribute path="vehicle.motorized.motorConfigurations.motorConfiguration(0).transmission.groups.group(0)#ratio" value="-0.48"/>  				
+            <attribute path="vehicle.motorized.motorConfigurations.motorConfiguration(0).transmission.groups.group(1)#ratio" value="0.3675"/>	  
+            <attribute path="vehicle.motorized.motorConfigurations.motorConfiguration(0).transmission.groups.group(2)#ratio" value="1.0"/>  						
+		
+            <attribute path="vehicle.motorized.motorConfigurations.motorConfiguration(0).transmission.groups.group(0)#name" value="R"/>			
+            <attribute path="vehicle.motorized.motorConfigurations.motorConfiguration(0).transmission.groups.group(1)#name" value="I"/>			
+            <attribute path="vehicle.motorized.motorConfigurations.motorConfiguration(0).transmission.groups.group(2)#name" value="II"/>			
+
+            <attribute path="vehicle.motorized.motorConfigurations.motorConfiguration(0).transmission.realismAddon_gearbox.groupsSecondSet#preselect" value="true"/>
+            <attribute path="vehicle.motorized.motorConfigurations.motorConfiguration(0).transmission.realismAddon_gearbox.groupsSecondSet.group(0)#ratio" value="0.75"/>
+            <attribute path="vehicle.motorized.motorConfigurations.motorConfiguration(0).transmission.realismAddon_gearbox.groupsSecondSet.group(0)#name" value="L"/>
+            <attribute path="vehicle.motorized.motorConfigurations.motorConfiguration(0).transmission.realismAddon_gearbox.groupsSecondSet.group(1)#ratio" value="1.0"/>
+            <attribute path="vehicle.motorized.motorConfigurations.motorConfiguration(0).transmission.realismAddon_gearbox.groupsSecondSet.group(1)#name" value="H"/>			
+            <attribute path="vehicle.motorized.motorConfigurations.motorConfiguration(0).transmission.realismAddon_gearbox.groupsSecondSet.group(1)#isDefault" value="true"/>		
+
+            <attribute path="vehicle.motorized.gearLevers.gearLever(1).state(0)#xRot" value="-6"/>	
+            <attribute path="vehicle.motorized.gearLevers.gearLever(1).state(0)#zRot" value="0"/>	
+            <attribute path="vehicle.motorized.gearLevers.gearLever(1).state(1)#xRot" value="6"/>	
+            <attribute path="vehicle.motorized.gearLevers.gearLever(1).state(1)#zRot" value="0"/>	
+            <attribute path="vehicle.motorized.gearLevers.gearLever(1).state(2)#xRot" value="6"/>	
+            <attribute path="vehicle.motorized.gearLevers.gearLever(1).state(2)#zRot" value="-4"/>	
+			
+        </attributes>	
+	</editFile>
+
+
 	<editFile xmlFilename="data/vehicles/johnDeere/series3650/series3650.xml">
         <attributes>
             <attribute path="vehicle.motorized.motorConfigurations.motorConfiguration(0).transmission.groups#type" value="DEFAULT"/>

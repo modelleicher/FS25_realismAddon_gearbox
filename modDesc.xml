@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" standalone="no" ?>
-<modDesc descVersion="101">
+<modDesc descVersion="105">
     <author>modelleicher</author>
-    <version>0.9.0.5</version>
+    <version>0.9.0.6</version>
     <title>
         <de>RealismAddon: Gearbox</de>
 		<en>RealismAddon: Gearbox</en>
@@ -11,7 +11,74 @@
 <![CDATA[RealismAddon: Gearbox]]>
         </de>
 	<en>
-<![CDATA[RealismAddon: Gearbox]]>
+<![CDATA[RealismAddon Gearbox for FS25
+
+The goal with this mod is to fix all the large and little problems realism players have with the default Farm Sim transmissions.
+
+Feature List:
+- removes all unnatural/automatic braking, only adding back Engine Braking depending on gearRatio
+- add constant rpm regulation (vehicle will drive at idle and not only if the gas pedal is pressed)
+- linear gas pedal (50% throttle pedal means 50% rpm not 80-90% like with Giants Default where the pedal is a acceleration pedal not throttle pedal)
+- real physical rpm everywhere (means wheels, sound, visual(Hud), engine rpm are all synchronized and the same - default Giants is that the sound/visual rpm is completely seperate from the actual physics calculation)
+- added proper clutch calculation which allows clutch slipping and proper clutch feel
+- added hand throttle (it doesn't automatically raise RPM when PTO is turned on anymore)
+- removed artifical rpm drop each time gas is liftet and hit again (Giants artifically lowered sound/visual rpm by about 200rpm each time you get off and on the gas even if its just a second)
+- remove automatic full brake when clutching in reverse bug
+- added support for axis shifting for FPS transmissions
+- added handbrake (EnhancedVehicle handbrake is used if EnhancedVehicle is active instead of ragb handbrake)
+- added support for second Group-Set so the usual Gears, Groups and second Group can be simulated. (for example Gears, R, L, H Group and L / H Powershift) Inputs need to be configured, nothing set by default
+- added optional Inputs for group5 to group8 since Giants default only allows 1-4
+- added XML Support to change basegame Vehicle Gearbox Settings
+
+Changelog: 
+
+V 0.9.0.6
+- added MB Trac 700-900 and Highland Fishing Fastrac 2000 Configs (also fixed steering angle for Fastrac 2000)
+- MoreRealistic Mod compatible
+
+V 0.9.0.5
+- fixed automatic transmissions not working
+- added automatic clutch opening when stopped on automatic transmissions so they can be used without clutch still
+- added optional Inputs for group5 to group8 since Giants default only allows 1-4
+
+V 0.9.0.4
+- added animations of secondGroup Levers
+- added possibility for modders to add motorized > gearLevers > gearLever(n) > state(n) #secondGroup property to trigger animations based on selected second group
+- adjusted xml overrides to add secondGroup animations to John Deere 3650
+
+V 0.9.0.3
+- added "P" for parking brake to gear hud instead of additional P to simplify hud
+
+V 0.9.0.2
+- Fixed FPS Axis not working
+
+V 0.9.0.1 
+- Fixed wrong modDesc descVersion
+
+V 0.9.0.0 
+- FS25 Release
+
+V 0.5.3.0
+- fixed clutch animation not working
+
+V 0.5.2.9
+- analog handthrottle axis multiplayer synch fixed
+
+V 0.5.2.8
+- removed debug print calculation clutch ratio
+- fixed hand throttle not working
+
+V 0.5.2.7
+- fixed Error when in Manual with Auto Clutch and CVT vehicle :: realismAddon_gearbox_overrides.lua:104: attempt to index field 'currentGears' (a nil value)
+
+V 0.5.2.6
+- addition of second group set
+- fixed compatability with automatic gears like in the default Valtra
+
+V 0.5.1.0
+- currentGearRatio set to 0 if in neutral, remove jerking when clutch is released in neutral -- added smoothing of acceleration value to stabilize rpm and load and lastAcceleratorPedal (not good.. better.. maybe? Now acc pedal reaction is slow)
+
+]]>
 	</en>
     </description>
 

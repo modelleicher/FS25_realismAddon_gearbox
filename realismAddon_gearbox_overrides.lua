@@ -178,7 +178,7 @@ function realismAddon_gearbox_overrides.calculateClutchRatio(self, motor)
 		end
 		
 		-- TO DO :instead of using wanted as cap, calculate ratio when wanted is another direction than actual such that vehicle slows down and accelerates in opposite direction at a realistic feeling rate 
-			
+		-- ß
 	end
 	
 
@@ -301,7 +301,7 @@ function realismAddon_gearbox_overrides.update(self, superFunc, dt)
 			local wantedRpm = (self.maxRpm - self.minRpm) * accInput + self.minRpm
 			local currentRpm = self.lastRealMotorRpm
 			if currentRpm < wantedRpm then
-				currentRpm = math.min(currentRpm + 2 * dt, wantedRpm)  -- to do, do proper engine rpm increase calculation 
+				currentRpm = math.min(currentRpm + 2 * dt, wantedRpm)  -- to do, do proper engine rpm increase calculation ß
 			elseif currentRpm > wantedRpm then
 				currentRpm = math.max(currentRpm - 1 * dt, wantedRpm)
 			end	
@@ -328,7 +328,7 @@ function realismAddon_gearbox_overrides.update(self, superFunc, dt)
 			end		
 			
 			
-			-- this doesn't work like that in FS22, so disable for now. Set clampedMotorRpm to minRpm if vehicle is stopped anyways 
+			-- this doesn't work like that in FS22, so disable for now. Set clampedMotorRpm to minRpm if vehicle is stopped anyways ß
 			if clutchRpm <= 0 and vehicle.isServer then -- check if we're server 
 				--vehicle:stopMotor()
 				clampedMotorRpm = self.minRpm
@@ -462,7 +462,7 @@ function realismAddon_gearbox_overrides.update(self, superFunc, dt)
 		
 		if vehicle:getIsMotorStarted() then
 		
-			-- turbo calculation for blow-off and turbo sound 		
+			-- turbo calculation for blow-off and turbo sound 		ß
 			local accInput = 0
 			if vehicle.getAxisForward ~= nil then
 				accInput = math.max(0, vehicle:getAxisForward())
@@ -524,9 +524,6 @@ function realismAddon_gearbox_overrides.update(self, superFunc, dt)
 	end
 	
 end
-VehicleMotor.update = Utils.overwrittenFunction(VehicleMotor.update, realismAddon_gearbox_overrides.update)
-
-
 
 
 
@@ -606,18 +603,15 @@ function realismAddon_gearbox_overrides.updateWheelsPhysics(self, superFunc, dt,
 		end
 		motor.lastAccelerationME = motor.lastAccelerationME * 0.9 + acceleration * 0.1
 		
-
 		-- set accelerationPedal desired value 
 		if acceleration > 0 then
 			acceleratorPedal = acceleration
 		end
 
-		
 		-- set brake pedal desired value  
 		if accBackup < 0 then
 			brakePedal = math.abs(accBackup)
-		end
-		-- 		
+		end 		
 		
 		-- hand brake basegame
 		if doHandbrake then
@@ -720,7 +714,7 @@ function realismAddon_gearbox_overrides.updateWheelsPhysics(self, superFunc, dt,
 			local neutralActive = minGearRatio == 0 and maxGearRatio == 0 or manualClutchValue > 0.9
 			motor:setExternalTorqueVirtualMultiplicator(ptoTorqueVirtualMultiplicator)
 			
-			if not neutralActive then
+			if not neutralActive then 
 				self:controlVehicle(absAcceleratorPedal, maxSpeed, maxAcceleration, minMotorRpm * math.pi / 30, maxMotorRpm * math.pi / 30, maxMotorRotAcceleration, minGearRatio, maxGearRatio, motor:getMaxClutchTorque(), neededPtoTorque)
 			else
 				self:controlVehicle(0, 0, 0, 0, math.huge, 0, 0, 0, 0, 0)
@@ -736,7 +730,19 @@ function realismAddon_gearbox_overrides.updateWheelsPhysics(self, superFunc, dt,
 		superFunc(self, dt, currentSpeed, acceleration, doHandbrake, stopAndGoBraking)
 	end
 end
-WheelsUtil.updateWheelsPhysics = Utils.overwrittenFunction(WheelsUtil.updateWheelsPhysics, realismAddon_gearbox_overrides.updateWheelsPhysics)
+
+-- MoreRealistic Function Replacement (call overwrittenFunction much later for VehicleMotor.update and WheelsUtil.updateWheelsPhysics since we want to overwrite MR functions if exist)
+function realismAddon_gearbox_overrides.loadMap(self, superFunc, a, b, c, d, e)
+
+		--print("### LoadMap ###")
+
+		VehicleMotor.update = Utils.overwrittenFunction(VehicleMotor.update, realismAddon_gearbox_overrides.update)
+
+		WheelsUtil.updateWheelsPhysics = Utils.overwrittenFunction(WheelsUtil.updateWheelsPhysics, realismAddon_gearbox_overrides.updateWheelsPhysics)
+
+		superFunc(self, a, b, c, d, e)
+end 
+BaseMission.loadMap = Utils.overwrittenFunction(BaseMission.loadMap, realismAddon_gearbox_overrides.loadMap)
 
 
 -- allowing to edit XML Files while loading to fix basegame Transmissions

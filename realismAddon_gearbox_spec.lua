@@ -89,6 +89,8 @@ function realismAddon_gearbox_spec:onLoad(savegame)
         -- powershift allows for shifting without clutch - preselect means that the range is preselected and then automatically shifts once the clutch is pressed 
 		spec.groupsSecondSet.powerShift = getXMLValueFallback(xml, key, defaultKey, groupsSecondSetKey.."#powerShift", "bool", nil, false)
 		spec.groupsSecondSet.preselect = getXMLValueFallback(xml, key, defaultKey, groupsSecondSetKey.."#preselect", "bool", nil, false)
+		spec.groupsSecondSet.liftToShift = getXMLValueFallback(xml, key, defaultKey, groupsSecondSetKey.."#liftToShift", "bool", nil, false)
+
 
         -- load all individual group ratios
 		local i = 0
@@ -195,7 +197,7 @@ function realismAddon_gearbox_spec:processSecondGroupSetInputs(wantedGroup, noEv
     -- if the groupSet is powerShift or if the clutch is fully depressed allow shifting right away
 	if spec.groupsSecondSet.powerShift or motor.manualClutchValue > 0.8 then 
         spec.groupsSecondSet.currentGroup = wantedGroup  
-    elseif spec.groupsSecondSet.preselect then -- if the groupSet is preselect type then don't shift right away but put wanted group into wantedGroup variable
+    elseif spec.groupsSecondSet.preselect or spec.groupsSecondSet.liftToShift then -- if the groupSet is preselect type then don't shift right away but put wanted group into wantedGroup variable
 		spec.groupsSecondSet.wantedGroup = wantedGroup
 	end
 
@@ -250,13 +252,23 @@ function realismAddon_gearbox_spec:onUpdate(dt)
 				
                 -- if we have a wantedGroup set differently to currentGroup and we are in preselect mode we check for clutch opening and set the group if the clutch is open
                 -- this needs no further synchronization because the clutch and wantedGroup are already synchronized
-				if spec.groupsSecondSet.wantedGroup ~= nil and spec.groupsSecondSet.wantedGroup ~= spec.groupsSecondSet.currentGroup and spec.groupsSecondSet.preselect then               
-                    if motor.manualClutchValue > 0.8 then
-						spec.groupsSecondSet.currentGroup = spec.groupsSecondSet.wantedGroup
-                        spec.groupsSecondSet.wantedGroup = nil                                  
-					end	
+				if spec.groupsSecondSet.wantedGroup ~= nil and spec.groupsSecondSet.wantedGroup ~= spec.groupsSecondSet.currentGroup then       
+					
+					if spec.groupsSecondSet.preselect then
+						if motor.manualClutchValue > 0.8 then
+							spec.groupsSecondSet.currentGroup = spec.groupsSecondSet.wantedGroup
+							spec.groupsSecondSet.wantedGroup = nil                                  
+						end	
+					end 
+
+					if spec.groupsSecondSet.liftToShift then 
+						if motor.lastAcceleratorPedal == 0 then
+							spec.groupsSecondSet.currentGroup = spec.groupsSecondSet.wantedGroup
+							spec.groupsSecondSet.wantedGroup = nil  
+						end
+					end
 				end
-			
+
 			end
 			
 			
