@@ -1,17 +1,6 @@
 -- by modelleicher ( Farming Agency )
 
-
-realismAddon_gearbox_overrides = {}
-
-local MAX_ACCELERATION_LOAD = 0.8
-
--- completely overwrite getLastModulatedMotorRpm to remove the RPM-lowering effect on load-changes. This seems to be done on purpose by Giants for whatever reason. 
--- I don't think we need anything in that function so just return unmodified lastMotorRpm (to try, maybe return lastRealMotorRpm instead even) 
--- this is active no matter what as soon as this script is active while other functions only activate when MANUAL + CLUTCH setting is active 
-function realismAddon_gearbox_overrides.newGetLastModulatedMotorRpm(self, superFunc)
-    return self.lastMotorRpm
-end
-VehicleMotor.getLastModulatedMotorRpm = Utils.overwrittenFunction(VehicleMotor.getLastModulatedMotorRpm, realismAddon_gearbox_overrides.newGetLastModulatedMotorRpm)
+-- this script contains all overwritten basegame functions and related helper functions
 
 
 -- gearbox adjustments - notes 
@@ -39,31 +28,42 @@ VehicleMotor.getLastModulatedMotorRpm = Utils.overwrittenFunction(VehicleMotor.g
 
 -- wrong RPM calculation between clutchValue 0.8 and 0.9 -- made clutch completely disengaged at 0.8 solves this.. don't have any other way atm since thats a engine function that returns the wrong value and I don't know which values influence that if any 
 
+
+--  manualClutchValue = 0 -> clutch closed, 1 -> clutch open 
+-- 	inverted = 1 -> clutch closed 0 -> open
 -- notes end 
 
--- second group set ratio calculation  
-function realismAddon_gearbox_overrides.getGearRatioMultiplier(self, superFunc)
+realismAddon_gearbox_overrides = {}
 
-	
-	if realismAddon_gearbox_overrides.checkIsManual(self) then
-	
-		
-		local vehicle = self.vehicle
-		
-		local multiplier = superFunc(self)
-		--print(multiplier)
-		
-		local spec = vehicle.spec_realismAddon_gearbox
-		if spec ~= nil and spec.groupsSecondSet ~= nil and spec.groupsSecondSet.currentGroup ~= nil then
-			multiplier = multiplier / spec.groupsSecondSet.groups[spec.groupsSecondSet.currentGroup].ratio
-		end
-		return multiplier
+-- "globals"
+-- some values are needed multiple times across different functions and might be subject to change/adjustment, put them here at the top
+local MAX_ACCELERATION_LOAD = 0.8
+local CLUTCH_FULLY_DISENGAGED = 0.2
+local CLUTCH_FULLY_DISENGAGED_INV = 1 - CLUTCH_FULLY_DISENGAGED
+local CLUTCH_CLOSED_RANGE = 0.05
+local CLUTCH_CLOSED_RANGE_INV = 1 - CLUTCH_CLOSED_RANGE
+local CLUTCH_BITE_CENTER = 0.7
+local CLUTCH_BITE_STEEPNESS = 10
+local CLUTCH_BITE_CALCULATION = false
+local CLUTCH_LOWER_TORQUE_LIMIT_PERCENT = 0.05 -- lower limit, don't reduce torque to 0 as that causes issues
+
+-- function to return if vehicle and settings are manual 
+function realismAddon_gearbox_overrides.checkIsManual(motor)
+	local isManualTransmission = motor.backwardGears ~= nil or motor.forwardGears ~= nil	
+	if isManualTransmission and motor.gearShiftMode == VehicleMotor.SHIFT_MODE_MANUAL_CLUTCH or isManualTransmission and  motor.gearShiftMode == VehicleMotor.SHIFT_MODE_MANUAL then	
+		return true
 	else
-		return superFunc(self)
-	end	
-
+		return false
+	end
 end
-VehicleMotor.getGearRatioMultiplier = Utils.overwrittenFunction(VehicleMotor.getGearRatioMultiplier, realismAddon_gearbox_overrides.getGearRatioMultiplier)
+
+-- completely overwrite getLastModulatedMotorRpm to remove the RPM-lowering effect on load-changes. This seems to be done on purpose by Giants for whatever reason. 
+-- I don't think we need anything in that function so just return unmodified lastMotorRpm (to try, maybe return lastRealMotorRpm instead even) 
+-- this is active no matter what as soon as this script is active while other functions only activate when MANUAL + CLUTCH setting is active 
+function realismAddon_gearbox_overrides.newGetLastModulatedMotorRpm(self, superFunc)
+    return self.lastMotorRpm
+end
+VehicleMotor.getLastModulatedMotorRpm = Utils.overwrittenFunction(VehicleMotor.getLastModulatedMotorRpm, realismAddon_gearbox_overrides.newGetLastModulatedMotorRpm)
 
 -- show "P" instead of gear when handbrake is used and active on incab displays 
 function realismAddon_gearbox_overrides.getGearToDisplay(self, superFunc, val, val2, val3, val4, val5)
@@ -85,9 +85,7 @@ VehicleMotor.getGearToDisplay = Utils.overwrittenFunction(VehicleMotor.getGearTo
 function realismAddon_gearbox_overrides.getGearInfoToDisplay(self, superFunc, val)
 
 	local val1, val2, val3, val4, val5, val6, val7, val8, val9, val10 = superFunc(self, val)
-	--print(tostring(val1).." "..tostring(val2).." "..tostring(val3).." "..tostring(val4).." "..tostring(val5).." "..tostring(val6).." "..tostring(val7).." "..tostring(val8).." "..tostring(val9).." "..tostring(val10))
 	local spec_ragb = self.spec_realismAddon_gearbox
-	
 	if spec_ragb.handbrakeUseME and	spec_ragb.handbrakeStateME then
 		val1 = "P"
 	end
@@ -97,39 +95,72 @@ end
 Motorized.getGearInfoToDisplay = Utils.overwrittenFunction(Motorized.getGearInfoToDisplay, realismAddon_gearbox_overrides.getGearInfoToDisplay)
 
 
--- better clutch feel 
-function realismAddon_gearbox_overrides.calculateClutchRatio(self, motor)
+-- gear ratio multiplier calculation, secondGroup and CVT are injected here
+function realismAddon_gearbox_overrides.getGearRatioMultiplier(self, superFunc)
+	if realismAddon_gearbox_overrides.checkIsManual(self) then
+
+		local vehicle = self.vehicle
+		local spec = vehicle.spec_realismAddon_gearbox
+
+		local multiplier = superFunc(self)
+
+		if spec ~= nil then 
+			if spec.groupsSecondSet ~= nil and spec.groupsSecondSet.currentGroup ~= nil then
+				multiplier = multiplier / spec.groupsSecondSet.groups[spec.groupsSecondSet.currentGroup].ratio
+			end
+			if spec.cvt ~= nil then 
+				local cvtInput = 1
+				if spec.cvt.manualControl then 
+					cvtInput = self.spec_realismAddon_gearbox_inputs.cvtPercent
+				elseif spec.cvt.accControl then 
+					-- -- TO DO
+				end
+				local cvtRatio = ((spec.cvt.maxPercentage - spec.cvt.minPercentage) * self.spec_realismAddon_gearbox_inputs.cvtPercent) + spec.cvt.minPercentage
+		
+				multiplier = multiplier / cvtRatio
+			end	
+		end
+
+		return multiplier
+	else
+		return superFunc(self)
+	end	
+end
+VehicleMotor.getGearRatioMultiplier = Utils.overwrittenFunction(VehicleMotor.getGearRatioMultiplier, realismAddon_gearbox_overrides.getGearRatioMultiplier)
+
+-- get final clutch value - this function returns the actual clutch value and inverted clutch value taking different inputs into account
+-- this is for future proofing
+function realismAddon_gearbox_overrides.getFinalClutchInputValue(self)
+	local motor = self.spec_motorized.motor
+	local manualClutchValue = motor.manualClutchValue
+
+    local spec = self.spec_realismAddon_gearbox
+	if spec ~= nil and spec.clutchValueOverride ~= nil then
+		-- get manual clutch value
+		local manualClutchValue = math.max(motor.manualClutchValue, spec.clutchValueOverride)
+	end
+	local manualClutchValueRaw = manualClutchValue
+	print(manualClutchValue)
+
+	if CLUTCH_BITE_CALCULATION then
+		-- convert linear input to s-curve input for better bite point feel (IRL clutch torque limitation should be pretty linear but it still feels like a solid bite point)
+		-- so we try to simulate that
+		local c = 1 / (1 + math.exp(-CLUTCH_BITE_STEEPNESS * (manualClutchValue - CLUTCH_BITE_CENTER)))
+		-- normalize back to 0-1
+		local minY = 1 / (1 + math.exp( CLUTCH_BITE_STEEPNESS * CLUTCH_BITE_CENTER))
+		local maxY = 1 / (1 + math.exp(-CLUTCH_BITE_STEEPNESS * (1 - CLUTCH_BITE_CENTER)))
+
+		manualClutchValue = (c - minY) / (maxY - minY)
+
+	end
+
+	return manualClutchValue, 1-manualClutchValue, manualClutchValueRaw
+end
+
+function realismAddon_gearbox_overrides.calculateClutchRatio(self, motor, accBackup, handThrottlePercent)
 
 
     local spec = self.spec_realismAddon_gearbox
-	
-	-- the end of this function will determine the actual gear ratio 
-	local actualGearRatio = 0
-
-	-- first get the current theoretical gear ratio based on wheel speed 	
-	local wheelSpeed = 0
-	local numWheels = 0
-	for _, wheel in pairs(self.spec_wheels.wheels) do
-
-		local rpm = getWheelShapeAxleSpeed(wheel.node, wheel.physics.wheelShape)*30/math.pi
-		wheelSpeed = wheelSpeed + (rpm * wheel.physics.radius)
-		numWheels = numWheels + 1
-		
-	end	
-	wheelSpeed = wheelSpeed / numWheels
-	
-	-- :wheelSpeed is now the signed average speed of all wheels  (FS25 Fix - add 0.00001 to avoid division by 0 error) 
-	-- use that to calculate the current gear ratio 
-	local currentGearRatio = math.max(1, motor.lastMotorRpm) / (wheelSpeed + 0.00001)
-
-	-- :currentGearRatio is now the actual true ratio between wheels average and motor 
-	
-	-- cap the currentRatio since if the ratio is too big physics act weird 
-	if currentGearRatio < 0 then
-		currentGearRatio = math.max(currentGearRatio, -1000)
-	else
-		currentGearRatio = math.min(currentGearRatio, 1000)
-	end
 	
 	-- get the wanted gear Ratio 
 	local wantedGearRatio = 0
@@ -137,75 +168,78 @@ function realismAddon_gearbox_overrides.calculateClutchRatio(self, motor)
 		wantedGearRatio = motor.currentGears[motor.gear].ratio * motor:getGearRatioMultiplier()
 	end		
 
-
 	-- if we are in neutral currentGearRatio is set to 0 as well no matter what 
 	if wantedGearRatio == 0 then
 		currentGearRatio = 0
 	end	
 	
-	-- smoothing maybe 
-	if motor.lastGearRatioME == nil then
-		motor.lastGearRatioME = currentGearRatio
-	end
-	motor.lastGearRatioME = motor.lastGearRatioME * 0.9 + currentGearRatio * 0.1
-	
-	
-	-- clutch value 
-	local manualClutchValue = math.max(motor.manualClutchValue, spec.clutchValueOverride)
-	
-	-- :wantedGearRatio is now the signed wanted ratio 
+	self.spec_motorized:updateMotorProperties()	
 
-	-- manualClutchValue is inverted so 0 is closed 1 is open 
-	if manualClutchValue < 0.01 then -- clutch is closed, use wantedGearRatio for actualGearRatio
-		actualGearRatio = wantedGearRatio
-	else -- if clutch is at least partially opened, use the ratio calculation including the clutch value 
-	
-		-- invert back to 0-1 value where 1 is closed 
-		local manualClutchValueInvert = 1 - manualClutchValue
-		
-		-- clutch non-linear and cap at 1
-		manualClutchValueInvert = math.min(manualClutchValueInvert * manualClutchValueInvert, 1)		
-		
-		-- interpolate between wanted and actual ratio according to clutch value 
-		actualGearRatio = (wantedGearRatio * manualClutchValueInvert) + (motor.lastGearRatioME * (1-manualClutchValueInvert))
-		
-		-- cap actual ratio at wanted 
-		if wantedGearRatio < 0 then
-			-- smaller negative value = higher ratio so cap at min 
-			actualGearRatio = math.min(actualGearRatio, wantedGearRatio)
-		else
-			actualGearRatio = math.max(actualGearRatio, wantedGearRatio)
+	motor.maxGearRatio = wantedGearRatio
+	motor.minGearRatio = wantedGearRatio
+
+end
+
+
+-- new clutch calculation, more aligned with how clutches IRL work
+-- still not entirely realistic but given the constraints of FS physics this is closer than the old calculation
+-- actually limiting torque transmitted depending on clutch value instead of changing ratio
+-- the change of ratio is a side-effect of the limited torque a partially opened clutch can transmit IRL, not the main cause why/how a clutch works
+-- if we limit the torque from the engine we can achieve a similar effect without influencing ratio at all
+-- unfortunately we can't limit torque on/at the clutch since FS physics does not have a working clutch so limiting what the engine can provide is the next best thing
+
+function realismAddon_gearbox_overrides.getTorqueCurveValue(self, superFunc, rpm)
+
+	local torque = superFunc(self, rpm) -- get original torque values for vehicles without manual gearbox
+
+    local spec = self.vehicle.spec_realismAddon_gearbox
+	if spec ~= nil and spec.clutchValueOverride ~= nil then
+
+		torque = superFunc(self, self.lastMotorRpm)	-- get original torque values but with real last rpm instead (need that to have the engine rpm and not wheel rpm)
+
+		local _, clutchPercent = realismAddon_gearbox_overrides.getFinalClutchInputValue(self.vehicle) -- inverting clutch value 
+
+		-- if clutch is closed less than 95% calculate torque depending on clutch position, the last 5% are clutch fully closed
+		if clutchPercent < CLUTCH_CLOSED_RANGE_INV then 
+
+			torque = math.max(torque * clutchPercent, torque * CLUTCH_LOWER_TORQUE_LIMIT_PERCENT) -- limit to 10% of torque lower
+
 		end
-		
-		-- TO DO :instead of using wanted as cap, calculate ratio when wanted is another direction than actual such that vehicle slows down and accelerates in opposite direction at a realistic feeling rate 
-		-- ß
 	end
-	
 
-	motor.maxGearRatio = actualGearRatio
-	motor.minGearRatio = actualGearRatio
-
+	return torque
 end
+VehicleMotor.getTorqueCurveValue = Utils.overwrittenFunction(VehicleMotor.getTorqueCurveValue, realismAddon_gearbox_overrides.getTorqueCurveValue)
 
--- function to return if vehicle and settings are manual 
-function realismAddon_gearbox_overrides.checkIsManual(motor)
-	local isManualTransmission = motor.backwardGears ~= nil or motor.forwardGears ~= nil	
-	if isManualTransmission and motor.gearShiftMode == VehicleMotor.SHIFT_MODE_MANUAL_CLUTCH or isManualTransmission and  motor.gearShiftMode == VehicleMotor.SHIFT_MODE_MANUAL then	
-		return true
-	else
-		return false
-	end
+
+-- OPEN TO DO
+function realismAddon_gearbox_overrides.getConsumedPtoTorque(self, superFunc, expected, ignoreTurnOnPeak)
+
+	local returnValue1, returnValue2 = superFunc(self, expected, ignoreTurnOnPeak)
+
+	if self:getIsActiveForInput(true) then
+		local spec = self.spec_powerConsumer
+		local rpm = spec.ptoRpm
+
+
+		--renderText(0.1, 0.5, 0.03, "rpm: "..tostring(rpm))
+	    --renderText(0.1, 0.55, 0.03, "powerKN: "..tostring(powerKN))
+	end 
+
+	return returnValue1, returnValue2
 end
+PowerConsumer.getConsumedPtoTorque = Utils.overwrittenFunction(PowerConsumer.getConsumedPtoTorque, realismAddon_gearbox_overrides.getConsumedPtoTorque)
+--
 
--- remove ptoRpm to minRpm change 
+
+
+-- make sure pto implements don't raise RPM when turned on
 function realismAddon_gearbox_overrides.getRequiredMotorRpmRange(self, superFunc)
-	
 	if realismAddon_gearbox_overrides.checkIsManual(self) then
 		return self.minRpm, self.maxRpm
 	else
 		return superFunc(self)
 	end
-
 end
 VehicleMotor.getRequiredMotorRpmRange = Utils.overwrittenFunction(VehicleMotor.getRequiredMotorRpmRange, realismAddon_gearbox_overrides.getRequiredMotorRpmRange)
 
@@ -213,11 +247,15 @@ VehicleMotor.getRequiredMotorRpmRange = Utils.overwrittenFunction(VehicleMotor.g
 -- VehicleMotor.update
 function realismAddon_gearbox_overrides.update(self, superFunc, dt)
 
-
 	-- do our custom stuff only if we are in SHIFT_MODE_MANUAL_CLUTCH and in a vehicle with manual transmission
 	if realismAddon_gearbox_overrides.checkIsManual(self) then	
 		
 		local vehicle = self.vehicle
+
+		-- ME Addition --
+		-- take additional clutch value overrides into account 
+		local manualClutchValue, clutchPercent = realismAddon_gearbox_overrides.getFinalClutchInputValue(self.vehicle)
+		--
 		
 		-- base stuff 
 		if next(vehicle.spec_motorized.differentials) ~= nil and vehicle.spec_motorized.motorizedNode ~= nil then
@@ -225,16 +263,21 @@ function realismAddon_gearbox_overrides.update(self, superFunc, dt)
 			local lastDiffRotSpeed = self.differentialRotSpeed
 			self.motorRotSpeed, self.differentialRotSpeed, self.gearRatio = getMotorRotationSpeed(vehicle.spec_motorized.motorizedNode)
 			
-			--print(tostring(self.motorRotSpeed)..tostring(self.differentialRotSpeed)..tostring(self.gearRatio))
-			--print("############################################################################")
-			
 			-- if clutch is disengaged more than 80% getMotorRotationSpeed will return wrong values for the motor rot speed, it will always return max rpm not sure why 
-				
-			
 			if g_physicsDtNonInterpolated > 0 and not getIsSleeping(vehicle.rootNode) then
 				self.lastMotorAvailableTorque, self.lastMotorAppliedTorque, self.lastMotorExternalTorque = getMotorTorque(vehicle.spec_motorized.motorizedNode)
 			end
 
+			-- ME Addition --
+			-- if clutch is open applied torque is 0 -- 
+			if clutchPercent <= CLUTCH_FULLY_DISENGAGED then
+				self.lastMotorAppliedTorque = 0
+			end
+			if clutchPercent < CLUTCH_CLOSED_RANGE_INV then -- if clutch isn't fully closed availableTorque is reverse calculated to what the clutch torque limiting does
+				self.lastMotorAvailableTorque = math.min(self.lastMotorAvailableTorque / clutchPercent, self.lastMotorAvailableTorque / CLUTCH_LOWER_TORQUE_LIMIT_PERCENT)
+			end
+			-- 
+			--
 
 			local motorRotAcceleration = ((self.motorRotSpeed - lastMotorRotSpeed)+0.00001) / ((g_physicsDtNonInterpolated * 0.001)+0.00001) 	-- FS25 Fix add 0.00001 to avoid division by 0 error 
 			self.motorRotAcceleration = motorRotAcceleration
@@ -249,8 +292,6 @@ function realismAddon_gearbox_overrides.update(self, superFunc, dt)
 			
 			self.differentialRotAccelerationSmoothed = 0.95 * self.differentialRotAccelerationSmoothed + 0.05 * diffRotAcc	
 		
-		
-
 			self.motorExternalTorque = self.lastMotorExternalTorque
 			self.motorAppliedTorque = self.lastMotorAppliedTorque
 			self.motorAvailableTorque = self.lastMotorAvailableTorque
@@ -274,14 +315,10 @@ function realismAddon_gearbox_overrides.update(self, superFunc, dt)
 		-- lastMotorRpm is smoothed
 		-- lastRealMotorRpm is not smoothed 
 		
-		-- take additional clutch value overrides into account 
-		local manualClutchValue = math.max(self.manualClutchValue, vehicle.spec_realismAddon_gearbox.clutchValueOverride)
-				
+
 		-- modelleicher 
 		-- if clutch is pressed, motor RPM is not dependent on wheel speed anymore.. Instead, calculate motor RPM based on accelerator pedal input 
-		if manualClutchValue > 0.1 or self:getIsInNeutral() then		
-			
-			local clutchPercent = 1 - manualClutchValue
+		if manualClutchValue > CLUTCH_CLOSED_RANGE or self:getIsInNeutral() then		
 			
 			if self:getIsInNeutral() then
 				clutchPercent = 0
@@ -292,12 +329,11 @@ function realismAddon_gearbox_overrides.update(self, superFunc, dt)
 				accInput = math.max(0, vehicle:getAxisForward())
 			end
 			
-			-- take hand throttle into account -- TO DO
+			-- take hand throttle into account 
 			if vehicle.spec_realismAddon_gearbox_inputs ~= nil then	
 				accInput = math.max(accInput, vehicle.spec_realismAddon_gearbox_inputs.handThrottlePercent)
 			end
 			
-
 			local wantedRpm = (self.maxRpm - self.minRpm) * accInput + self.minRpm
 			local currentRpm = self.lastRealMotorRpm
 			if currentRpm < wantedRpm then
@@ -306,17 +342,9 @@ function realismAddon_gearbox_overrides.update(self, superFunc, dt)
 				currentRpm = math.max(currentRpm - 1 * dt, wantedRpm)
 			end	
 
-			
-			if clutchPercent < 0.2 then -- below 20% the clutch is fully opened, just use our RPM calculation    -- 0.8 manual clutch value -
-				clampedMotorRpm = currentRpm
-	
-			elseif clutchPercent < 0.8 then -- up to 80% the clutch can still slip a lot, use fixed percentage 	-- 0.2 manual clutch value 
-				clampedMotorRpm = (clampedMotorRpm * 0.1) + (currentRpm * 0.9)
-				
-			else	-- everything else 
-				clampedMotorRpm = (clampedMotorRpm * ((clutchPercent-0.2)*1.25)) + (currentRpm * (1-((clutchPercent-0.2)*1.25)))
-			end			
-			
+			-- non-linear rpm clutch influence -- non-linearity could be changed for different engine reaction to clutch closing but ^3 seems pretty good
+			clampedMotorRpm = clampedMotorRpm * (clutchPercent^3) + (currentRpm * (1-(clutchPercent^3)))
+
 		else
 		
 			-- get clutch RPM shut off motor if RPM gets too low , disable "auto clutch" of FS
@@ -326,7 +354,6 @@ function realismAddon_gearbox_overrides.update(self, superFunc, dt)
 			if clutchRpm < self.minRpm and clutchRpm > 0 then -- only if not 0 cause Multiplayer 
 				clampedMotorRpm = (self.lastRealMotorRpm * 0.7) + (clutchRpm * 0.3)
 			end		
-			
 			
 			-- this doesn't work like that in FS22, so disable for now. Set clampedMotorRpm to minRpm if vehicle is stopped anyways ß
 			if clutchRpm <= 0 and vehicle.isServer then -- check if we're server 
@@ -343,7 +370,6 @@ function realismAddon_gearbox_overrides.update(self, superFunc, dt)
 
 			-- clamp so no negative value 
 			clampedMotorRpm = math.max(clampedMotorRpm, 0)	
-
 		end
 		
 		-- finally set the new RPM values
@@ -372,7 +398,19 @@ function realismAddon_gearbox_overrides.update(self, superFunc, dt)
 			-- load calculation by Giants, this doesn't look bad at all 
 			
 			-- raw and buffer 
-			local rawLoadPercentage = self:getMotorAppliedTorque() / math.max(self:getMotorAvailableTorque(), 0.0001)
+
+			-- ME Addition --
+			-- if clutch is open applied torque is 0 -- 
+			local lastMotorAppliedTorque = self:getMotorAppliedTorque()
+			local lastMotorAvailableTorque = math.max(self:getMotorAvailableTorque(), 0.0001)	
+			
+			local rawLoadPercentage = lastMotorAppliedTorque / lastMotorAvailableTorque
+
+			--			
+			--print("rawLoadPercentage: "..tostring(rawLoadPercentage))
+			--print("getMotorAppliedTorque: "..tostring(lastMotorAppliedTorque))
+			--print("getMotorAvailableTorque: "..tostring(lastMotorAvailableTorque))
+
 			self.rawLoadPercentageBuffer = self.rawLoadPercentageBuffer + rawLoadPercentage
 			self.rawLoadPercentageBufferIndex = self.rawLoadPercentageBufferIndex + 1
 
@@ -398,13 +436,13 @@ function realismAddon_gearbox_overrides.update(self, superFunc, dt)
 			
 			-- modelleicher
 			-- add in load percentage if engine is accelerating in neutral or with clutch pressed 
-			local clutchPercent = 1 - manualClutchValue
 			local currentRpm = self.lastRealMotorRpm
 			local mAxisForward = 0
 			if vehicle.getAxisForward ~= nil then
 				mAxisForward = math.max(0, vehicle:getAxisForward())
 			end			
 			
+			-- TO DO change this maybe? so 0.1 instead of 0.6 halfway closed clutch
 			-- if clutch is pressed or neutral, load percentage is calculated using wanted and actual RPM 
 			if clutchPercent < 0.6 or self:getIsInNeutral() then
 				local loadNeutral
@@ -460,6 +498,8 @@ function realismAddon_gearbox_overrides.update(self, superFunc, dt)
 
 		self:updateSmoothLoadPercentage(dt, self.rawLoadPercentage)	
 		
+
+		-- BLOW OF VALVE - DOES NOT WORK - TO DO
 		if vehicle:getIsMotorStarted() then
 		
 			-- turbo calculation for blow-off and turbo sound 		ß
@@ -504,7 +544,8 @@ function realismAddon_gearbox_overrides.update(self, superFunc, dt)
 		else
 			self.blowOffValveStateME = 0
 		end		
-				
+		--
+		-- 	
 				
 		-- fix for automatic gearbox 	
 		if self.forwardGears or self.backwardGears then
@@ -544,7 +585,7 @@ function realismAddon_gearbox_overrides.updateWheelsPhysics(self, superFunc, dt,
 		local brakePedal = 0	
 		
 		-- take additional clutch value overrides into account 
-		local manualClutchValue = math.max(motor.manualClutchValue, spec.clutchValueOverride)		
+		local manualClutchValue, clutchPercent = realismAddon_gearbox_overrides.getFinalClutchInputValue(self)
 		
 		
 		--
@@ -564,16 +605,14 @@ function realismAddon_gearbox_overrides.updateWheelsPhysics(self, superFunc, dt,
 			-- calculate the currently wanted RPM depending on acceleration (e.g. pedal position)
 			local wantedRpm = (motor.maxRpm - motor.minRpm) * acceleration + motor.minRpm
 			
-			
 			-- if our wantedRPM is higher than the currentRPM, increase acceleration, if its lower, decrease acceleration
 			if wantedRpm > motor.lastRealMotorRpm then
 				newWantedAcceleration = 1
 			else
 				newWantedAcceleration = 0
 			end
-		
 		end
-		
+
 		acceleration = newWantedAcceleration
 		
 		-- if engine rpm falls below minRpm acceleration is 1
@@ -582,7 +621,7 @@ function realismAddon_gearbox_overrides.updateWheelsPhysics(self, superFunc, dt,
 		end	
 		
 		-- if clutch is disengaged, acceleration is 0
-		if manualClutchValue > 0.8 then
+		if manualClutchValue > CLUTCH_FULLY_DISENGAGED_INV then
 			acceleration = 0
 		end
 
@@ -602,6 +641,11 @@ function realismAddon_gearbox_overrides.updateWheelsPhysics(self, superFunc, dt,
 			motor.lastAccelerationME = acceleration
 		end
 		motor.lastAccelerationME = motor.lastAccelerationME * 0.9 + acceleration * 0.1
+
+
+		-- limit acceleration when clutch starts to engage
+		--local CLUTCH_ENGAGE_FACTOR = 2
+		--acceleration = math.min(acceleration, acceleration * math.min(clutchPercent*CLUTCH_ENGAGE_FACTOR, 1))
 		
 		-- set accelerationPedal desired value 
 		if acceleration > 0 then
@@ -675,8 +719,8 @@ function realismAddon_gearbox_overrides.updateWheelsPhysics(self, superFunc, dt,
 		-- #M1  -- in updateGear the current clutch ratio influences the current gear ratio 
 				-- also it seems to be only called here, so instead of overwriting the entire function I can just do a new ratio calculation here 		
 		
-		-- better clutch feel, new ratio calc 
-		realismAddon_gearbox_overrides.calculateClutchRatio(self, motor)
+		-- better clutch feel, new ratio calc -- TO DO -- change this as no longer needed in that way
+		realismAddon_gearbox_overrides.calculateClutchRatio(self, motor, accBackup, handThrottlePercent)
 		
 		-- smoothing for lastAcceleratorPedal since the acceleratorPedal is on/off with my calculation, even with smoothing the load-changes are too fast (V 0.5.1.0 addition)
 		if motor.lastAcceleratorPedalME == nil then
@@ -711,9 +755,10 @@ function realismAddon_gearbox_overrides.updateWheelsPhysics(self, superFunc, dt,
 			local minMotorRpm, maxMotorRpm = motor:getRequiredMotorRpmRange()
 			local neededPtoTorque, ptoTorqueVirtualMultiplicator = PowerConsumer.getTotalConsumedPtoTorque(self)
 			neededPtoTorque = neededPtoTorque / motor:getPtoMotorRpmRatio()
-			local neutralActive = minGearRatio == 0 and maxGearRatio == 0 or manualClutchValue > 0.9
+			local neutralActive = minGearRatio == 0 and maxGearRatio == 0 or manualClutchValue > CLUTCH_FULLY_DISENGAGED_INV
 			motor:setExternalTorqueVirtualMultiplicator(ptoTorqueVirtualMultiplicator)
-			
+
+
 			if not neutralActive then 
 				self:controlVehicle(absAcceleratorPedal, maxSpeed, maxAcceleration, minMotorRpm * math.pi / 30, maxMotorRpm * math.pi / 30, maxMotorRotAcceleration, minGearRatio, maxGearRatio, motor:getMaxClutchTorque(), neededPtoTorque)
 			else

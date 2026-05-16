@@ -37,6 +37,11 @@ function realismAddon_gearbox_inputs.onRegisterActionEvents(self, isActiveForInp
 			self:addRealismAddonActionEvent("BUTTON_SINGLE_ACTION", "RAGB_SHIFT_GROUP_6", "GROUP58_MANUAL_INPUT")	
 			self:addRealismAddonActionEvent("BUTTON_SINGLE_ACTION", "RAGB_SHIFT_GROUP_7", "GROUP58_MANUAL_INPUT")	
 			self:addRealismAddonActionEvent("BUTTON_SINGLE_ACTION", "RAGB_SHIFT_GROUP_8", "GROUP58_MANUAL_INPUT")	
+
+			-- cvt control
+			self:addRealismAddonActionEvent("PRESSED_OR_AXIS", "RAGB_CVT_UP", "CVT_UP")
+			self:addRealismAddonActionEvent("PRESSED_OR_AXIS", "RAGB_CVT_DOWN", "CVT_DOWN")
+			--self:addRealismAddonActionEvent("PRESSED_OR_AXIS", "RAGB_CVT_AXIS", "CVT_INPUT")			
 		
 		end
 
@@ -85,9 +90,9 @@ function realismAddon_gearbox_inputs:HANDTHROTTLE_INPUT(actionName, inputValue)
 			self:raiseDirtyFlags(spec.synchHandThrottleDirtyFlag)
 			spec.handThrottlePercent = inputValue
 		end
-	elseif actionName == "RAGB_HANDTHROTTLE_UP" and inputValue == 1 then
+	elseif actionName == "RAGB_HANDTHROTTLE_UP" and inputValue > 0.5 then
 		spec.handThrottleUp = true 
-	elseif actionName == "RAGB_HANDTHROTTLE_DOWN" and inputValue == 1 then
+	elseif actionName == "RAGB_HANDTHROTTLE_DOWN" and inputValue > 0.5 then
 		spec.handThrottleDown = true			
 	end
 end
@@ -164,6 +169,55 @@ function realismAddon_gearbox_inputs:GROUP58_MANUAL_INPUT(actionName, inputValue
 	end
 end
 
+function realismAddon_gearbox_inputs:CVT_INPUT(actionName, inputValue)	
+
+	print(tostring(actionName).." - "..tostring(inputValue))
+
+
+	local spec = self.spec_realismAddon_gearbox_inputs
+	spec.cvtDown = false
+	spec.cvtUp = false	
+	if actionName == "RAGB_CVT_AXIS" then
+	
+		-- round to 1% resolution should be fine enough (to not spam multiplayer synch)
+		inputValue = math.floor(inputValue * 100) / 100
+		if spec.cvtPercent ~= inputValue then
+			self:raiseDirtyFlags(spec.synchCVTDirtyFlag)
+			spec.cvtPercent = inputValue
+		end
+	end
+	if actionName == "RAGB_CVT_UP" and inputValue > 0.5 then
+		spec.cvtUp = true 
+	end
+	if actionName == "RAGB_CVT_DOWN" and inputValue > 0.5 then
+		spec.cvtDown = true			
+	end
+
+	--print("CVT INPUT PERCENT: "..tostring(spec.cvtPercent))
+end
+
+function realismAddon_gearbox_inputs:CVT_UP(actionName, inputValue)	
+	local spec = self.spec_realismAddon_gearbox_inputs	
+	spec.cvtUp = false	
+
+
+
+	if inputValue > 0.5 then 
+		spec.cvtUp = true 
+			--print("UP")
+	end
+end
+
+function realismAddon_gearbox_inputs:CVT_DOWN(actionName, inputValue)	
+	local spec = self.spec_realismAddon_gearbox_inputs
+
+	spec.cvtDown = false
+	if inputValue > 0.5 then 
+		spec.cvtDown = true 
+			--print("DOWN")
+	end	
+end
+
 -- ACTUAL SPEC 
 
 function realismAddon_gearbox_inputs.registerEventListeners(vehicleType)
@@ -207,8 +261,13 @@ function realismAddon_gearbox_inputs:onLoad(savegame)
 	
 	-- gear shift axis values 
 	spec.gearAxisPosition = 0	
-	
 
+	-- manual cvt control 
+	spec.cvtPercent = 1
+	spec.cvtDown = false
+	spec.cvtUp = false
+	
+	spec.synchCVTDirtyFlag = self:getNextDirtyFlag()	
 
 end
 
@@ -238,6 +297,15 @@ function realismAddon_gearbox_inputs:onUpdate(dt)
 				self:raiseDirtyFlags(spec.synchHandThrottleDirtyFlag)				
 			end
 
+			-- calculating CVT 
+			if spec.cvtDown then
+				spec.cvtPercent = math.max(0, spec.cvtPercent - 0.001*dt)
+				self:raiseDirtyFlags(spec.synchCVTDirtyFlag)
+			elseif spec.cvtUp then
+				spec.cvtPercent = math.min(1, spec.cvtPercent + 0.001*dt)
+				self:raiseDirtyFlags(spec.synchCVTDirtyFlag)			
+			end			
+
 		end
 			
 	end
@@ -255,6 +323,11 @@ function realismAddon_gearbox_inputs:onWriteUpdateStream(streamId, connection, d
 		if streamWriteBool(streamId, bitAND(dirtyMask, spec.synchHandThrottleDirtyFlag) ~= 0) then
 			streamWriteUIntN(streamId, spec.handThrottlePercent * 100, 7)
 		end		
+
+		-- cvt 
+		if streamWriteBool(streamId, bitAND(dirtyMask, spec.synchCVTDirtyFlag) ~= 0) then
+			streamWriteUIntN(streamId, spec.cvtPercent * 100, 7)
+		end			
 	end
 	
 end
@@ -267,6 +340,11 @@ function realismAddon_gearbox_inputs:onReadUpdateStream(streamId, timestamp, con
 		if streamReadBool(streamId) then
 			spec.handThrottlePercent = streamReadUIntN(streamId, 7) / 100
 		end		
+
+		-- cvt 
+		if streamReadBool(streamId) then
+			spec.cvtPercent = streamReadUIntN(streamId, 7) / 100
+		end			
 	end
 	
 end

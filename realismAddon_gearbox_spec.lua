@@ -184,6 +184,26 @@ function realismAddon_gearbox_spec:onLoad(savegame)
 	
 	-- additional clutch value for auto clutch, 0 is closed for Giants Clutch 
 	spec.clutchValueOverride = 0
+
+
+	-- cvt 
+    local cvtKey = ".transmission.realismAddon_gearbox.cvt"
+
+	local hasCVT = getXMLValueFallback(xml, key, defaultKey, cvtKey, nil, true)
+	if hasCVT then
+		spec.cvt = {}
+
+		spec.cvt.minPercentage = getXMLValueFallback(xml, key, defaultKey, cvtKey.."#minPercentage", "float", nil, 0.1)
+		spec.cvt.maxPercentage = getXMLValueFallback(xml, key, defaultKey, cvtKey.."#maxPercentage", "float", nil, 1)
+
+		--spec.cvt.stallPrevention = getXMLValueFallback(xml, key, defaultKey, cvtKey.."#stallPrevention", "bool", nil, false)
+		spec.cvt.manualControl = getXMLValueFallback(xml, key, defaultKey, cvtKey.."#manualControl", "bool", nil, true)
+		--spec.cvt.accControl = getXMLValueFallback(xml, key, defaultKey, cvtKey.."#accControl", "bool", nil, false)
+
+		spec.cvt.currentRatio = spec.cvt.minRatio
+
+
+	end
 	
 end
 
@@ -234,6 +254,7 @@ function realismAddon_gearbox_spec:onUpdate(dt)
 					end		
 				end
 			end
+
 	
 			if spec.groupsSecondSet ~= nil then	
                 

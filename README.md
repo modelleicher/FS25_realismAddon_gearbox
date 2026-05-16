@@ -38,6 +38,11 @@ Download FS25_realismAddon_gearbox.zip from the releases section and put it into
 
 # Changelog in FS25
 
+###### V 0.9.1.0
+-- new clutch using torque limiting instead of gear ratios for clutch effect (BETA)
+-- added manual cvt control feature for old combines in combination with gears
+-- added examples.xml for examples on how to add cvt or secondGroup 
+
 ###### V 0.9.0.6
 - added MB Trac 700-900 and Highland Fishing Fastrac 2000 Configs (also fixed steering angle for Fastrac 2000)
 - MoreRealistic Mod compatible

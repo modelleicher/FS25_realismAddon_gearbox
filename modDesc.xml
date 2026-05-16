@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" standalone="no" ?>
 <modDesc descVersion="105">
     <author>modelleicher</author>
-    <version>0.9.0.6</version>
+    <version>0.9.1.0</version>
     <title>
         <de>RealismAddon: Gearbox</de>
 		<en>RealismAddon: Gearbox</en>
@@ -111,6 +111,10 @@ V 0.5.1.0
 		<text name="input_RAGB_SHIFT_GROUP_7"><de>7. Gruppe schalten</de><en>Gear group 7</en></text>
 		<text name="input_RAGB_SHIFT_GROUP_8"><de>8. Gruppe schalten</de><en>Gear group 8</en></text>
 
+		<text name="input_RAGB_CVT_UP"><de>CVT erhöhen</de><en>CVT up</en></text>
+		<text name="input_RAGB_CVT_DOWN"><de>CVT verringern</de><en>CVT down</en></text>
+		<text name="input_RAGB_CVT_AXIS"><de>CVT Analoge Achse</de><en>CVT axis</en></text>		
+
 	</l10n>
 	
 	<inputBinding>
@@ -123,6 +127,16 @@ V 0.5.1.0
 		<actionBinding action="RAGB_HANDTHROTTLE_AXIS">
 			<binding device="KB_MOUSE_DEFAULT" input="" />
 		</actionBinding>	
+
+		<actionBinding action="RAGB_CVT_UP">
+			<binding device="KB_MOUSE_DEFAULT" input="" />
+		</actionBinding>
+		<actionBinding action="RAGB_CVT_DOWN">
+			<binding device="KB_MOUSE_DEFAULT" input="" />
+		</actionBinding>
+		<actionBinding action="RAGB_CVT_AXIS">
+			<binding device="KB_MOUSE_DEFAULT" input="" />
+		</actionBinding>			
 		
 		<actionBinding action="RAGB_GEARSHIFT_AXIS">
 			<binding device="KB_MOUSE_DEFAULT" input="" />
@@ -157,6 +171,10 @@ V 0.5.1.0
 		<action name="RAGB_HANDTHROTTLE_AXIS" />
 		<action name="RAGB_HANDTHROTTLE_DOWN" />
 		<action name="RAGB_HANDTHROTTLE_UP" />
+
+		<action name="RAGB_CVT_AXIS" />
+		<action name="RAGB_CVT_DOWN" />
+		<action name="RAGB_CVT_UP" />		
 		
 		<action name="RAGB_GEARSHIFT_AXIS" />
 		
