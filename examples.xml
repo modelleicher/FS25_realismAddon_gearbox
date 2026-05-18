@@ -5,6 +5,33 @@
 
 <!-- XML Examples -->
 
+<!-- Fluid Clutch (like Fendt Turbomatik) -->
+<!-- This Example is a Fendt Gearbox like the Xylon or 500C -->
+<transmission autoGearChangeTime="1" gearChangeTime="0.25" name="$l10n_info_transmission_manualWithPowerShiftGroups" startGearThreshold="0.75">
+    <directionChange useGear="false" useGroup="false" changeTime="0.25"/>
+
+    <groups type="POWERSHIFT" changeTime="0.25">
+        <group ratio="0.5356" name="I"/>
+        <group ratio="0.6907" name="II"/>
+        <group ratio="0.8458" name="III"/>
+        <group ratio="1.0000" name="IV" isDefault="true"/>
+    </groups>
+
+    <forwardGear maxSpeed="5.71"/>
+    <forwardGear maxSpeed="9.39"/>
+    <forwardGear maxSpeed="14.03"/>
+    <forwardGear maxSpeed="21.87"/>
+    <forwardGear maxSpeed="32.10"/>
+    <forwardGear maxSpeed="53.00"/>
+
+    <!-- this part needs to be added -->
+    <realismAddon_gearbox> 
+        <!-- fluidClutch line: stallRpm = rpm where the fluid clutch is mechanically connected, idleBiasFx = factor for how much torque is transmitted at idle, default 1, higher means more torque -->
+        <fluidClutch stallRpm="1350" idleBiasFx="1"/>
+    </realismAddon_gearbox>  
+     <!-- - - - - - - - - - - - - - - -->      
+</transmission>
+
 
 <!-- CVT in combination with gears for example for combines -->
 <!-- the CVT feature is mainly for the use in older combines who combine gears and belt variators -->

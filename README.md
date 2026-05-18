@@ -38,6 +38,10 @@ Download FS25_realismAddon_gearbox.zip from the releases section and put it into
 
 # Changelog in FS25
 
+###### V 0.9.2.0
+-- addition of fluidClutch (Fendt Turbomatik for example) - see examples.xml
+-- fixed division by zero error in combination with FS25_gearboxExtension
+
 ###### V 0.9.1.0
 -- new clutch using torque limiting instead of gear ratios for clutch effect (BETA)
 -- added manual cvt control feature for old combines in combination with gears

@@ -204,7 +204,21 @@ function realismAddon_gearbox_spec:onLoad(savegame)
 
 
 	end
+
+	-- fluid clutch
+    local fluidClutchKey = ".transmission.realismAddon_gearbox.fluidClutch"	
+	local hasFluidClutch = getXMLValueFallback(xml, key, defaultKey, fluidClutchKey, nil, true)
+	if hasFluidClutch then
+		spec.fluidClutch = {}
+
+		spec.fluidClutch.stallRpm = getXMLValueFallback(xml, key, defaultKey, cvtKey.."#stallRpm", "float", nil, 1350)
+		spec.fluidClutch.idleBiasFx = getXMLValueFallback(xml, key, defaultKey, cvtKey.."#idleBiasFx", "float", nil, 1)
+		spec.fluidClutch.clutchPercent = 1
+	end
+
 	
+	
+
 end
 
 -- process the inputs of the secondGroupSet Input Call
@@ -324,7 +338,25 @@ function realismAddon_gearbox_spec:onUpdate(dt)
 						end
 					end
 				end
-			end							
+			end	
+			
+			if spec.fluidClutch ~= nil then 
+				-- get current RPM 
+				local motor = self.spec_motorized.motor
+				local rpm = motor.lastRealMotorRpm
+				if rpm < spec.fluidClutch.stallRpm then
+					-- calculate range via minRpm and currentRpm	
+					local range = spec.fluidClutch.stallRpm - motor.minRpm
+					-- get the linear closing percentage 
+					local linearPercentage = (math.max(rpm, motor.minRpm + 1) - motor.minRpm) / range
+
+					spec.fluidClutch.clutchPercent = linearPercentage
+					print("fluid open: "..tostring(rpm).. " " .. tostring(linearPercentage))
+				else
+					spec.fluidClutch.clutchPercent = 1
+				end
+			end
+
 		end	
 	end	
 end
