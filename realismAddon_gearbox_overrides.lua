@@ -109,11 +109,11 @@ function realismAddon_gearbox_overrides.getGearRatioMultiplier(self, superFunc)
 			if spec.cvt ~= nil then 
 				local cvtInput = 1
 				if spec.cvt.manualControl then 
-					cvtInput = self.spec_realismAddon_gearbox_inputs.cvtPercent
+					cvtInput = vehicle.spec_realismAddon_gearbox_inputs.cvtPercent
 				elseif spec.cvt.accControl then 
 					-- -- TO DO
 				end
-				local cvtRatio = ((spec.cvt.maxPercentage - spec.cvt.minPercentage) * self.spec_realismAddon_gearbox_inputs.cvtPercent) + spec.cvt.minPercentage
+				local cvtRatio = ((spec.cvt.maxPercentage - spec.cvt.minPercentage) * vehicle.spec_realismAddon_gearbox_inputs.cvtPercent) + spec.cvt.minPercentage
 		
 				multiplier = multiplier / cvtRatio
 			end	

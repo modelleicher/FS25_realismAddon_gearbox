@@ -351,7 +351,7 @@ function realismAddon_gearbox_spec:onUpdate(dt)
 					local linearPercentage = (math.max(rpm, motor.minRpm + 1) - motor.minRpm) / range
 
 					spec.fluidClutch.clutchPercent = linearPercentage
-					print("fluid open: "..tostring(rpm).. " " .. tostring(linearPercentage))
+					--print("fluid open: "..tostring(rpm).. " " .. tostring(linearPercentage))
 				else
 					spec.fluidClutch.clutchPercent = 1
 				end
