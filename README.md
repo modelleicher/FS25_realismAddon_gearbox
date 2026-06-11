@@ -38,6 +38,11 @@ Download FS25_realismAddon_gearbox.zip from the releases section and put it into
 
 # Changelog in FS25
 
+###### V 0.9.3.1
+- fixed Vehicle Debug Torque Curve being displayed wrongly (moved to another function to overwrite for clutch torque)
+- fixed infinite torque bug right at 10% clutch engagement
+- changed clutch closed range (deadzone) from 5% to 10%
+
 ###### V 0.9.3.0
 - major overhaul, addition of multiple seperate specializations specific to each task separated from realismAddon_gearbox_spec
 - added keyboard clutch feature, vehicle will open clutch when pressing the brake, close when accelerating again. (Select Shiftmode MANUAL)

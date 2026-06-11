@@ -40,9 +40,9 @@ realismAddon_gearbox_overrides = {}
 local MAX_ACCELERATION_LOAD = 0.8
 local CLUTCH_FULLY_DISENGAGED = 0.2
 local CLUTCH_FULLY_DISENGAGED_INV = 1 - CLUTCH_FULLY_DISENGAGED
-local CLUTCH_CLOSED_RANGE = 0.05
+local CLUTCH_CLOSED_RANGE = 0.10
 local CLUTCH_CLOSED_RANGE_INV = 1 - CLUTCH_CLOSED_RANGE
-local CLUTCH_LOWER_TORQUE_LIMIT_PERCENT = 0.05 -- lower limit, don't reduce torque to 0 as that causes issues
+local CLUTCH_LOWER_TORQUE_LIMIT_PERCENT = 0.01 -- lower limit, don't reduce torque to 0 as that causes issues
 local FLUID_CLUTCH_IDLE_CLOSING_PERCENTAGE = 0.21
 
 -- function to check and return if vehicle and settings are manual 
@@ -242,28 +242,35 @@ VehicleMotor.onManualClutchChanged = Utils.overwrittenFunction(VehicleMotor.onMa
 -- the change of ratio is a side-effect of the limited torque a partially opened clutch can transmit IRL, not the main cause why/how a clutch works
 -- if we limit the torque from the engine we can achieve a similar effect without influencing ratio at all
 -- unfortunately we can't limit torque on/at the clutch since FS physics does not have a working clutch so limiting what the engine can provide is the next best thing
-function realismAddon_gearbox_overrides.getTorqueCurveValue(self, superFunc, rpm)
+-- V 0.9.3.1 change - moved from getTorqueCurveValue to getTorqueAndSpeedValues to fix visual bug in Debug Menu for torque curve showing
+function realismAddon_gearbox_overrides.getTorqueAndSpeedValues(self, superFunc)
 
-	local torque = superFunc(self, rpm) -- get original torque values for vehicles without manual gearbox
+	if realismAddon_gearbox_overrides.checkIsManual(self) then
+		local speeds = {}
+		local torques = {}
 
-    local spec = self.vehicle.spec_realismAddon_gearbox
-	if spec ~= nil and spec.clutchValueOverride ~= nil then
+		local clutchPercent = 1 - self:getClutchPedal()	
 
-		torque = superFunc(self, self.lastMotorRpm)	-- get original torque values but with real last rpm instead (need that to have the engine rpm and not wheel rpm)
+		for _, torque in ipairs(self:getTorqueCurve().keyframes) do
+			table.insert(speeds, torque.time * 3.141592653589793 / 30)
 
-		local clutchPercent = 1 - self:getClutchPedal()
+			local torque = self:getTorqueCurveValue(torque.time)
 
-		-- if clutch is closed less than 95% calculate torque depending on clutch position, the last 5% are clutch fully closed
-		if clutchPercent < CLUTCH_CLOSED_RANGE_INV then 
+			-- if clutch is closed less than 95% calculate torque depending on clutch position, the last 5% are clutch fully closed
+			if clutchPercent < CLUTCH_CLOSED_RANGE_INV then 
+				torque = math.max(torque * clutchPercent, CLUTCH_LOWER_TORQUE_LIMIT_PERCENT) -- limit to 10% of torque lower
+			end		
 
-			torque = math.max(torque * clutchPercent, torque * CLUTCH_LOWER_TORQUE_LIMIT_PERCENT) -- limit to 10% of torque lower
+			table.insert(torques, torque)
+		end		
 
-		end
+		return torques, speeds
+	else
+		return superFunc(self)
 	end
 
-	return torque
 end
-VehicleMotor.getTorqueCurveValue = Utils.overwrittenFunction(VehicleMotor.getTorqueCurveValue, realismAddon_gearbox_overrides.getTorqueCurveValue)
+VehicleMotor.getTorqueAndSpeedValues = Utils.overwrittenFunction(VehicleMotor.getTorqueAndSpeedValues, realismAddon_gearbox_overrides.getTorqueAndSpeedValues)
 
 
 -- OPEN TO DO
@@ -328,10 +335,15 @@ function realismAddon_gearbox_overrides.update(self, superFunc, dt)
 			if clutchPercent <= CLUTCH_FULLY_DISENGAGED then
 				self.lastMotorAppliedTorque = 0
 			end
-			if clutchPercent < CLUTCH_CLOSED_RANGE_INV then -- if clutch isn't fully closed availableTorque is reverse calculated to what the clutch torque limiting does
-				self.lastMotorAvailableTorque = math.min(self.lastMotorAvailableTorque / math.max(clutchPercent, 0.0001), self.lastMotorAvailableTorque / CLUTCH_LOWER_TORQUE_LIMIT_PERCENT)
-			end
+			-- removed lastMotorAvailableTorque influenced by clutch because it already is physics-side 
+
+			local clutchPercent = 1 - self:getClutchPedal()
+
+			--self.lastMotorAvailableTorque = self.lastMotorAvailableTorque * clutchPercent
+
 			-- -- 
+			print("lastMotorAvailableTorque: "..tostring(self.lastMotorAvailableTorque))
+
 
 			local motorRotAcceleration = ((self.motorRotSpeed - lastMotorRotSpeed)+0.00001) / ((g_physicsDtNonInterpolated * 0.001)+0.00001) 	-- FS25 Fix add 0.00001 to avoid division by 0 error 
 			self.motorRotAcceleration = motorRotAcceleration
