@@ -7,15 +7,18 @@ function realismAddon_gearbox_inputs.prerequisitesPresent(specializations)
     return true
 end
 
+
+
 -- Action Event Adding 
 -- custom function for adding actionEvents since there might be a lot 
 function realismAddon_gearbox_inputs.onRegisterActionEvents(self, isActiveForInput, isActiveForInputIgnoreSelection)
 	
 
 	if self.isClient then
-		local spec = self.spec_realismAddon_gearbox_inputs
+		local specInputs = self.spec_realismAddon_gearbox_inputs
+		local spec = self.spec_realismAddon_gearbox
 		
-		if (isActiveForInputIgnoreSelection or isActiveForInput) and spec.allManualActive then
+		if (isActiveForInputIgnoreSelection or isActiveForInput) and specInputs.allManualActive then
 		
 			-- hand throttle 
 			self:addRealismAddonActionEvent("PRESSED_OR_AXIS", "RAGB_HANDTHROTTLE_UP", "HANDTHROTTLE_INPUT")
@@ -26,9 +29,11 @@ function realismAddon_gearbox_inputs.onRegisterActionEvents(self, isActiveForInp
 			self:addRealismAddonActionEvent("PRESSED_OR_AXIS", "RAGB_GEARSHIFT_AXIS", "RAGB_GEARSHIFT_AXIS")	
 
 			-- second group set
-			self:addRealismAddonActionEvent("BUTTON_SINGLE_ACTION", "RAGB_GROUPSECOND_UP", "GROUPSECOND_INPUT")			
-			self:addRealismAddonActionEvent("BUTTON_SINGLE_ACTION", "RAGB_GROUPSECOND_DOWN", "GROUPSECOND_INPUT")	
-			
+			if spec.groupsSecondSet ~= nil then
+				self:addRealismAddonActionEvent("BUTTON_SINGLE_ACTION", "RAGB_GROUPSECOND_UP", "GROUPSECOND_INPUT")			
+				self:addRealismAddonActionEvent("BUTTON_SINGLE_ACTION", "RAGB_GROUPSECOND_DOWN", "GROUPSECOND_INPUT")	
+			end
+
 			-- handbrake
 			self:addRealismAddonActionEvent("BUTTON_SINGLE_ACTION", "RAGB_HANDBRAKE", "HANDBRAKE_INPUT")			
 
@@ -39,9 +44,22 @@ function realismAddon_gearbox_inputs.onRegisterActionEvents(self, isActiveForInp
 			self:addRealismAddonActionEvent("BUTTON_SINGLE_ACTION", "RAGB_SHIFT_GROUP_8", "GROUP58_MANUAL_INPUT")	
 
 			-- cvt control
-			self:addRealismAddonActionEvent("PRESSED_OR_AXIS", "RAGB_CVT_UP", "CVT_UP")
-			self:addRealismAddonActionEvent("PRESSED_OR_AXIS", "RAGB_CVT_DOWN", "CVT_DOWN")
-			--self:addRealismAddonActionEvent("PRESSED_OR_AXIS", "RAGB_CVT_AXIS", "CVT_INPUT")			
+			if spec.cvt ~= nil then
+				self:addRealismAddonActionEvent("PRESSED_OR_AXIS", "RAGB_CVT_UP", "CVT_UP")
+				self:addRealismAddonActionEvent("PRESSED_OR_AXIS", "RAGB_CVT_DOWN", "CVT_DOWN")	
+				-- cvt vario control 
+				if spec.cvt.isVario then 
+					self:addRealismAddonActionEvent("BUTTON_SINGLE_ACTION", "RAGB_VARIO_JOYSTICK_F", "VARIO_JOYSTICK_F")	
+					self:addRealismAddonActionEvent("BUTTON_SINGLE_ACTION", "RAGB_VARIO_JOYSTICK_R", "VARIO_JOYSTICK_R")	
+					self:addRealismAddonActionEvent("BUTTON_SINGLE_ACTION", "RAGB_VARIO_JOYSTICK_TOGGLE_DIRECTION", "VARIO_JOYSTICK_TOGGLE_DIRECTION")		
+					self:addRealismAddonActionEvent("BUTTON_SINGLE_ACTION", "RAGB_VARIO_JOYSTICK_CRUISE", "VARIO_JOYSTICK_CRUISE")							
+					self:addRealismAddonActionEvent("BUTTON_SINGLE_ACTION", "RAGB_VARIO_NEUTRAL_BUTTON", "VARIO_NEUTRAL_BUTTON")			
+				end
+			end
+
+			-- gui
+			--self:addRealismAddonActionEvent("BUTTON_SINGLE_ACTION", "RAGB_GUI_OPEN", "GUI_OPEN")
+
 		
 		end
 
@@ -169,53 +187,55 @@ function realismAddon_gearbox_inputs:GROUP58_MANUAL_INPUT(actionName, inputValue
 	end
 end
 
-function realismAddon_gearbox_inputs:CVT_INPUT(actionName, inputValue)	
-
-	print(tostring(actionName).." - "..tostring(inputValue))
-
-
-	local spec = self.spec_realismAddon_gearbox_inputs
-	spec.cvtDown = false
-	spec.cvtUp = false	
-	if actionName == "RAGB_CVT_AXIS" then
-	
-		-- round to 1% resolution should be fine enough (to not spam multiplayer synch)
-		inputValue = math.floor(inputValue * 100) / 100
-		if spec.cvtPercent ~= inputValue then
-			self:raiseDirtyFlags(spec.synchCVTDirtyFlag)
-			spec.cvtPercent = inputValue
-		end
-	end
-	if actionName == "RAGB_CVT_UP" and inputValue > 0.5 then
-		spec.cvtUp = true 
-	end
-	if actionName == "RAGB_CVT_DOWN" and inputValue > 0.5 then
-		spec.cvtDown = true			
-	end
-
-	--print("CVT INPUT PERCENT: "..tostring(spec.cvtPercent))
-end
-
 function realismAddon_gearbox_inputs:CVT_UP(actionName, inputValue)	
-	local spec = self.spec_realismAddon_gearbox_inputs	
-	spec.cvtUp = false	
-
-
-
-	if inputValue > 0.5 then 
-		spec.cvtUp = true 
-			--print("UP")
+	if inputValue > 0.5 then
+		self:processCVTControlInputs("up")
 	end
 end
 
 function realismAddon_gearbox_inputs:CVT_DOWN(actionName, inputValue)	
-	local spec = self.spec_realismAddon_gearbox_inputs
+	if inputValue > 0.5 then
+		self:processCVTControlInputs("down")
+	end
+end
 
-	spec.cvtDown = false
-	if inputValue > 0.5 then 
-		spec.cvtDown = true 
-			--print("DOWN")
-	end	
+
+--varioInputType.FORWARD = 1
+--varioInputType.BACKWARD = 2
+--varioInputType.TOGGLE = 3
+--varioInputType.CRUISE = 4
+--varioInputType.NEUTRAL = 5
+function realismAddon_gearbox_inputs:VARIO_JOYSTICK_F(actionName, inputValue)	
+	self:processVarioInputs(1)
+end
+function realismAddon_gearbox_inputs:VARIO_JOYSTICK_R(actionName, inputValue)	
+	self:processVarioInputs(2)
+end
+function realismAddon_gearbox_inputs:VARIO_JOYSTICK_TOGGLE_DIRECTION(actionName, inputValue)	
+	self:processVarioInputs(3)
+end
+function realismAddon_gearbox_inputs:VARIO_JOYSTICK_CRUISE(actionName, inputValue)	
+	self:processVarioInputs(4)
+end
+function realismAddon_gearbox_inputs:VARIO_NEUTRAL_BUTTON(actionName, inputValue)	
+	self:processVarioInputs(5)
+end
+
+
+
+
+	local modDirectory = g_currentModDirectory
+-- GUI 
+function realismAddon_gearbox_inputs:GUI_OPEN(actionName, inputValue)
+	
+
+	g_gui:loadGui(modDirectory.."gui/realismAddon_gearbox_gui.xml", "realismAddon_gearbox_gui", realismAddon_gearbox_gui:new())
+
+
+	local gui = g_gui:showDialog("realismAddon_gearbox_gui")
+	--realismAddon_gearbox_gui.target:setCallback(CVTaddon.guiCallback, self)
+
+	realismAddon_gearbox_gui.postNew(gui.target, self)
 end
 
 -- ACTUAL SPEC 
@@ -262,12 +282,6 @@ function realismAddon_gearbox_inputs:onLoad(savegame)
 	-- gear shift axis values 
 	spec.gearAxisPosition = 0	
 
-	-- manual cvt control 
-	spec.cvtPercent = 1
-	spec.cvtDown = false
-	spec.cvtUp = false
-	
-	spec.synchCVTDirtyFlag = self:getNextDirtyFlag()	
 
 end
 
@@ -296,16 +310,6 @@ function realismAddon_gearbox_inputs:onUpdate(dt)
 				spec.handThrottlePercent = math.min(1, spec.handThrottlePercent + 0.001*dt)
 				self:raiseDirtyFlags(spec.synchHandThrottleDirtyFlag)				
 			end
-
-			-- calculating CVT 
-			if spec.cvtDown then
-				spec.cvtPercent = math.max(0, spec.cvtPercent - 0.001*dt)
-				self:raiseDirtyFlags(spec.synchCVTDirtyFlag)
-			elseif spec.cvtUp then
-				spec.cvtPercent = math.min(1, spec.cvtPercent + 0.001*dt)
-				self:raiseDirtyFlags(spec.synchCVTDirtyFlag)			
-			end			
-
 		end
 			
 	end

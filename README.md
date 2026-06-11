@@ -38,6 +38,16 @@ Download FS25_realismAddon_gearbox.zip from the releases section and put it into
 
 # Changelog in FS25
 
+###### V 0.9.3.0
+- major overhaul, addition of multiple seperate specializations specific to each task separated from realismAddon_gearbox_spec
+- added keyboard clutch feature, vehicle will open clutch when pressing the brake, close when accelerating again. (Select Shiftmode MANUAL)
+- added automatic clutch closing slowly depending on rpm when keyboard clutch is active (Select Shiftmode MANUAL)
+- added 1. Gen Fendt Vario CVT simulation including realistic Joystick Simulation
+- started on a GUI, not yet implemented/in use 
+--------------------------------------------------
+- when playing on Keyboard, you MUST select Shiftmode MANUAL and NOT MANUAL WITH CLUTCH!! Clutch using a Button won't work in MANUAL WITH CLUTCH anymore!!
+--------------------------------------------------
+
 ###### V 0.9.2.1
 - hotfix removed fluidClutch debug print
 - hotfix manual cvt error attempt to index nil with 'cvtPercent'

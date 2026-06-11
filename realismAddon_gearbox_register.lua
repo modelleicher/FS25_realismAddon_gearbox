@@ -1,11 +1,18 @@
 -- by modelleicher ( Farming Agency )
 -- register realismAddon_gearbox specializations and insert to vehicles 
 
-
+-- realismAddon_gearbox_inputs contains everything related to local and global settings
+g_specializationManager:addSpecialization("realismAddon_gearbox_settings", "realismAddon_gearbox_settings", g_currentModDirectory.."realismAddon_gearbox_settings.lua")
 -- realismAddon_gearbox_spec contains everything that needs to be in a spec (e.g. everything that is not an overwritten function)
 g_specializationManager:addSpecialization("realismAddon_gearbox_spec", "realismAddon_gearbox_spec", g_currentModDirectory.."realismAddon_gearbox_spec.lua")
+-- realismAddon_gearbox_spec_clutch contains all functions related to the various clutch calculations that aren't in the overwritten part 
+g_specializationManager:addSpecialization("realismAddon_gearbox_spec_clutch", "realismAddon_gearbox_spec_clutch", g_currentModDirectory.."realismAddon_gearbox_spec_clutch.lua")
+-- realismAddon_gearbox_spec_cvt contains all the functions related to cvt calculations
+g_specializationManager:addSpecialization("realismAddon_gearbox_spec_cvt", "realismAddon_gearbox_spec_cvt", g_currentModDirectory.."realismAddon_gearbox_spec_cvt.lua")
 -- realismAddon_gearbox_inputs contains only Inputs and Functions that are called via the Input Callback
 g_specializationManager:addSpecialization("realismAddon_gearbox_inputs", "realismAddon_gearbox_inputs", g_currentModDirectory.."realismAddon_gearbox_inputs.lua")
+
+
 -- everything else is in realismAddon_gearbox_overrides
 
 
@@ -23,28 +30,50 @@ function realismAddon_gearbox_register:register(name)
 			local motorized = false
 			local realismAddon_gearbox_inputs = false
 			local realismAddon_gearbox_spec = false
+			local realismAddon_gearbox_spec_clutch = false
+			local realismAddon_gearbox_spec_cvt = false			
+			local realismAddon_gearbox_settings = false
+
+
 						
 			for _, spec in pairs(vehicle.specializationNames) do
 			
 				if spec == "motorized" then -- check for motorized, only insert into motorized
 					motorized = true
 				end
+				if spec == "realismAddon_gearbox_settings" then -- don't insert if already inserted
+					realismAddon_gearbox_settings = true
+				end						
 				if spec == "realismAddon_gearbox_inputs" then -- don't insert if already inserted
 					realismAddon_gearbox_inputs = true
 				end
 				if spec == "realismAddon_gearbox_spec" then -- don't insert if already inserted
 					realismAddon_gearbox_spec = true
 				end
-
+				if spec == "realismAddon_gearbox_spec_clutch" then -- don't insert if already inserted
+					realismAddon_gearbox_spec_clutch = true
+				end
+				if spec == "realismAddon_gearbox_spec_cvt" then -- don't insert if already inserted
+					realismAddon_gearbox_spec_cvt = true
+				end		
 				
 			end    
 			if motorized then
+				if not realismAddon_gearbox_settings then				
+					g_vehicleTypeManager:addSpecialization(vehicle.name, "FS25_realismAddon_gearbox.realismAddon_gearbox_settings")
+				end					
 				if not realismAddon_gearbox_spec then
 					g_vehicleTypeManager:addSpecialization(vehicle.name, "FS25_realismAddon_gearbox.realismAddon_gearbox_spec")
-				end				
+				end		
+				if not realismAddon_gearbox_spec_clutch then
+					g_vehicleTypeManager:addSpecialization(vehicle.name, "FS25_realismAddon_gearbox.realismAddon_gearbox_spec_clutch")
+				end		
+				if not realismAddon_gearbox_spec_cvt then
+					g_vehicleTypeManager:addSpecialization(vehicle.name, "FS25_realismAddon_gearbox.realismAddon_gearbox_spec_cvt")
+				end						
 				if not realismAddon_gearbox_inputs then				
 					g_vehicleTypeManager:addSpecialization(vehicle.name, "FS25_realismAddon_gearbox.realismAddon_gearbox_inputs")
-				end
+				end			
 			end
 		end
 		

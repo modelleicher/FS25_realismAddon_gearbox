@@ -5,6 +5,28 @@
 
 <!-- XML Examples -->
 
+
+<!-- Vario 1. Gen CVT (first gen 900 Vario complete manual control vario transmission inkl. joystick simulation)-->
+<!-- this example is for a 900 Vario, but it can theoretically als be used for the 1. gen 700 and 400 vario -->
+<!-- the 2 forwardGears are now the 2 ranges field and road or I and II, gearChangeTime is 0 since those ranges can be shifted without clutch-->
+<!-- in theory the ranges can be shifted even under load but thats not good for the transmission, ideally when standing still or no load. ideally in neutral -->
+<!-- but this way, having them as powershift is realistic -->
+<transmission autoGearChangeTime="0" gearChangeTime="0" name="$l10n_info_transmission_manual">
+    <forwardGear maxSpeed="30"/>
+    <forwardGear maxSpeed="55"/>
+    
+    <!-- this is the setup for vario transmission, best not to change it -->
+    <!-- as soon as isVario is set to true the script assumes a lot of settings specific for 1. gen vario transmissions -->
+    <!-- in the future all optional cvt settings will be explained but some of them aren't fully implemented yet so, there is no further explanation, just copy this part-->
+    <realismAddon_gearbox>
+        <cvt minPercentage="0.01" maxPercentage="1" manualControl="true" canChangeDirection="true" isVario="true" />
+    </realismAddon_gearbox>
+    <!-- - - - - - - - - - - - - - - -->
+</transmission>
+				
+
+
+
 <!-- Fluid Clutch (like Fendt Turbomatik) -->
 <!-- This Example is a Fendt Gearbox like the Xylon or 500C -->
 <transmission autoGearChangeTime="1" gearChangeTime="0.25" name="$l10n_info_transmission_manualWithPowerShiftGroups" startGearThreshold="0.75">

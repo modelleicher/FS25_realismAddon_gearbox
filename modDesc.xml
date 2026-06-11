@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" standalone="no" ?>
 <modDesc descVersion="105">
     <author>modelleicher</author>
-    <version>0.9.2.1</version>
+    <version>0.9.3.0</version>
     <title>
         <de>RealismAddon: Gearbox</de>
 		<en>RealismAddon: Gearbox</en>
@@ -31,6 +31,14 @@ Feature List:
 - added XML Support to change basegame Vehicle Gearbox Settings
 
 Changelog: 
+
+V 0.9.3.0
+- major overhaul, addition of multiple seperate specializations specific to each task separated from realismAddon_gearbox_spec
+- added keyboard clutch feature, vehicle will open clutch when pressing the brake, close when accelerating again. (Select Shiftmode MANUAL)
+- added automatic clutch closing slowly depending on rpm when keyboard clutch is active (Select Shiftmode MANUAL)
+- added 1. Gen Fendt Vario CVT simulation including realistic Joystick Simulation
+- started on a GUI, not yet implemented/in use 
+- when playing on Keyboard, you MUST select Shiftmode MANUAL and NOT MANUAL WITH CLUTCH!! Clutch using a Button won't work in MANUAL WITH CLUTCH anymore!!
 
 V 0.9.2.1
 - hotfix removed fluidClutch debug print
@@ -126,8 +134,15 @@ V 0.5.1.0
 
 		<text name="input_RAGB_CVT_UP"><de>CVT erhöhen</de><en>CVT up</en></text>
 		<text name="input_RAGB_CVT_DOWN"><de>CVT verringern</de><en>CVT down</en></text>
-		<text name="input_RAGB_CVT_AXIS"><de>CVT Analoge Achse</de><en>CVT axis</en></text>		
+		<text name="input_RAGB_CVT_AXIS"><de>CVT Analoge Achse</de><en>CVT axis</en></text>	
 
+		<text name="input_RAGB_VARIO_JOYSTICK_F"><de>CVT Joystick Select F</de><en>CVT Joystick Select F</en></text>	
+		<text name="input_RAGB_VARIO_JOYSTICK_R"><de>CVT Joystick Select R</de><en>CVT Joystick Select R</en></text>	
+		<text name="input_RAGB_VARIO_JOYSTICK_TOGGLE_DIRECTION"><de>CVT Joystick Toggle Dir</de><en>CVT Joystick Toggle Dir</en></text>	
+		<text name="input_RAGB_VARIO_JOYSTICK_CRUISE"><de>CVT Joystick Cruise Control</de><en>CVT Joystick Cruise Control</en></text>			
+		<text name="input_RAGB_VARIO_NEUTRAL_BUTTON"><de>CVT Neutral Button</de><en>CVT Neutral Button</en></text>	
+
+		<text name="input_RAGB_GUI_OPEN"><de>GUI öffnen</de><en>GUI open</en></text>
 	</l10n>
 	
 	<inputBinding>
@@ -177,10 +192,32 @@ V 0.5.1.0
 		</actionBinding>
 		<actionBinding action="RAGB_SHIFT_GROUP_8">
 			<binding device="KB_MOUSE_DEFAULT" input="" />
-		</actionBinding>		
+		</actionBinding>	
+
+		<actionBinding action="RAGB_VARIO_JOYSTICK_F">
+			<binding device="KB_MOUSE_DEFAULT" input="" />
+		</actionBinding>	
+		<actionBinding action="RAGB_VARIO_JOYSTICK_R">
+			<binding device="KB_MOUSE_DEFAULT" input="" />
+		</actionBinding>	
+		<actionBinding action="RAGB_VARIO_JOYSTICK_TOGGLE_DIRECTION">
+			<binding device="KB_MOUSE_DEFAULT" input="" />
+		</actionBinding>	
+		<actionBinding action="RAGB_VARIO_JOYSTICK_CRUISE">
+			<binding device="KB_MOUSE_DEFAULT" input="" />
+		</actionBinding>			
+		<actionBinding action="RAGB_VARIO_NEUTRAL_BUTTON">
+			<binding device="KB_MOUSE_DEFAULT" input="" />
+		</actionBinding>									
+
+		<actionBinding action="RAGB_GUI_OPEN">
+			<binding device="KB_MOUSE_DEFAULT" input="" />
+		</actionBinding>			
 	</inputBinding>
 	
 	<actions>
+
+
 		<action name="RAGB_HANDTHROTTLE_AXIS" />
 		<action name="RAGB_HANDTHROTTLE_DOWN" />
 		<action name="RAGB_HANDTHROTTLE_UP" />
@@ -188,6 +225,12 @@ V 0.5.1.0
 		<action name="RAGB_CVT_AXIS" />
 		<action name="RAGB_CVT_DOWN" />
 		<action name="RAGB_CVT_UP" />		
+
+		<action name="RAGB_VARIO_JOYSTICK_F" />		
+		<action name="RAGB_VARIO_JOYSTICK_R" />		
+		<action name="RAGB_VARIO_JOYSTICK_TOGGLE_DIRECTION" />	
+		<action name="RAGB_VARIO_JOYSTICK_CRUISE" />				
+		<action name="RAGB_VARIO_NEUTRAL_BUTTON" />			
 		
 		<action name="RAGB_GEARSHIFT_AXIS" />
 		
@@ -199,7 +242,9 @@ V 0.5.1.0
 		<action name="RAGB_SHIFT_GROUP_5" />		
 		<action name="RAGB_SHIFT_GROUP_6" />		
 		<action name="RAGB_SHIFT_GROUP_7" />		
-		<action name="RAGB_SHIFT_GROUP_8" />		
+		<action name="RAGB_SHIFT_GROUP_8" />	
+
+		<action name="RAGB_GUI_OPEN" />				
 	</actions>	
 	
 </modDesc>

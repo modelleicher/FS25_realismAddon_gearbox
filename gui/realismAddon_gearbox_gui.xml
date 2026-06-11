@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8" standalone="no" ?>
+
+
+<GUI onOpen="onOpen" onClose="onClose" onCreate="onCreate">
+	<GuiElement profile="newLayer" />
+	<Bitmap profile="dialogFullscreenBg"/>
+
+    <GuiElement profile="fs25_dialogContentContainer" id="settingsContainer">
+
+        <BoxLayout profile="fs25_dialogButtonBox" position="0px -40px">
+            <Button profile="buttonBack" id="noButton" text="$l10n_button_back" onClick="onClickBack"/>
+            <Bitmap profile="fs25_dialogButtonBoxSeparator"/>
+
+            <Button profile="buttonOK" id="yesButton" text="$l10n_button_ok" onClick="onClickOk"/>
+            <Bitmap profile="fs25_dialogButtonBoxSeparator"/>
+        </BoxLayout>
+
+        <Bitmap profile="fs25_settingsTooltipSeparator" position="860px -50px" height="680px" />
+
+        <!--BoxLayout position="600px -50px"-->
+
+            <GuiElement profile="fs25_multiTextOptionContainer" position="15px -50px">
+                <Text profile="multiTextOptionSettingsTitle" id="ragb_test_1_text" text="Keyboard Clutch (open clutch when pressing brake, closing when pressing accelerator)"/>
+                <BinaryOption profile="fs25_settingsBinaryOption" id="ragb_keyboardClutch_toggle" onClick="keyboardClutchToggle_callback">
+                    <Text profile="fs25_multiTextOptionTooltip" name="ignore" id="ragb_test_1_text2" position="700px 0px"/>
+                </BinaryOption>	
+            </GuiElement>       
+
+            <GuiElement profile="fs25_multiTextOptionContainer" position="15px -100px">
+                <Text profile="multiTextOptionSettingsTitle" id="ragb_test_1_text" text="Test"/>
+                <BinaryOption profile="fs25_settingsBinaryOption" id="ragb_test_1_binaryOption2" state="2">
+                    <Text profile="fs25_multiTextOptionTooltip" name="ignore" id="ragb_test_1_text2" position="700px 0px"/>
+                </BinaryOption>	
+            </GuiElement>     
+
+            <GuiElement profile="fs25_multiTextOptionContainer" position="15px -150px">
+                <Text profile="multiTextOptionSettingsTitle" id="ragb_test_1_text" text="Test"/>
+                <BinaryOption profile="fs25_settingsBinaryOption" id="ragb_test_1_binaryOption3">
+                    <Text profile="fs25_multiTextOptionTooltip" name="ignore" id="ragb_test_1_text2" position="700px 0px"/>
+                </BinaryOption>	
+            </GuiElement>  
+
+        <!--/BoxLayout-->
+
+
+        <TextInput profile="fs25_chatTextInput" id="textElement" onEnterPressed="onEnterPressed" onEscPressed="onEscPressed" imeTitle="$l10n_ui_chat" imeDescription="$l10n_ui_chat" imePlaceholder="$l10n_ui_chat" focusId="1">
+            <ThreePartBitmap profile="fs25_chatTextInputBg"/>
+        </TextInput>    
+        <GUIProfiles>
+            <Profile name="fs25_chatTextInput" extends="fs25_dialogTextInput" with="anchorBottomLeft">
+                <size value="300px 40px"/>
+                <maxInputTextWidth value="280px"/>
+                <maxCharacters value="150"/>
+                <position value="30px 270px"/>
+                <textAlignment value="left"/>
+                <textSize value="12px"/>
+                <textBold value="false"/>
+            </Profile>
+            <Profile name="fs25_chatTextInputBg" extends="fs25_textInputBg">
+                <size value="300px 40px"/>
+                <imageColor value="$preset_fs25_colorChatTextInput"/>
+                <startImageColor value="$preset_fs25_colorChatTextInput"/>
+                <endImageColor value="$preset_fs25_colorChatTextInput"/>
+            </Profile>
+	    </GUIProfiles>       
+
+    </GuiElement>     
+
+</GUI>

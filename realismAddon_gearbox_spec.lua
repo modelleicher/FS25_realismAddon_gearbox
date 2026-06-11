@@ -1,11 +1,16 @@
 -- by modelleicher ( Farming Agency )
 
 
-realismAddon_gearbox_spec = {}
+realismAddon_gearbox_spec = {} 
 
 function realismAddon_gearbox_spec.prerequisitesPresent(specializations)
     return true
 end
+
+
+
+--source(g_currentModDirectory.."gui/realismAddon_gearbox_gui.lua")
+
 
 function realismAddon_gearbox_spec.registerEventListeners(vehicleType)
 	SpecializationUtil.registerEventListener(vehicleType, "onLoad", realismAddon_gearbox_spec)
@@ -28,7 +33,6 @@ function realismAddon_gearbox_spec.getBoostPressureRAGB(self)
 
 	return self.spec_motorized.motor.boostPressureME
 end
-
 g_soundManager:registerModifierType("BOOST_PRESSURE_RAGB", realismAddon_gearbox_spec.getBoostPressureRAGB)
 
 -- helper function to get XML value on key and fallback key (basically instead of getConfigurationValue but without Schemas)
@@ -135,6 +139,7 @@ function realismAddon_gearbox_spec:onLoad(savegame)
 				break
 			end
 
+
 			local nodeStr = getXMLString(xml, leverKey .. "#node")
 			local node = I3DUtil.indexToObject(self.components, nodeStr, self.i3dMappings)
 			if node ~= nil then
@@ -186,39 +191,6 @@ function realismAddon_gearbox_spec:onLoad(savegame)
 	spec.clutchValueOverride = 0
 
 
-	-- cvt 
-    local cvtKey = ".transmission.realismAddon_gearbox.cvt"
-
-	local hasCVT = getXMLValueFallback(xml, key, defaultKey, cvtKey, nil, true)
-	if hasCVT then
-		spec.cvt = {}
-
-		spec.cvt.minPercentage = getXMLValueFallback(xml, key, defaultKey, cvtKey.."#minPercentage", "float", nil, 0.1)
-		spec.cvt.maxPercentage = getXMLValueFallback(xml, key, defaultKey, cvtKey.."#maxPercentage", "float", nil, 1)
-
-		--spec.cvt.stallPrevention = getXMLValueFallback(xml, key, defaultKey, cvtKey.."#stallPrevention", "bool", nil, false)
-		spec.cvt.manualControl = getXMLValueFallback(xml, key, defaultKey, cvtKey.."#manualControl", "bool", nil, true)
-		--spec.cvt.accControl = getXMLValueFallback(xml, key, defaultKey, cvtKey.."#accControl", "bool", nil, false)
-
-		spec.cvt.currentRatio = spec.cvt.minRatio
-
-
-	end
-
-	-- fluid clutch
-    local fluidClutchKey = ".transmission.realismAddon_gearbox.fluidClutch"	
-	local hasFluidClutch = getXMLValueFallback(xml, key, defaultKey, fluidClutchKey, nil, true)
-	if hasFluidClutch then
-		spec.fluidClutch = {}
-
-		spec.fluidClutch.stallRpm = getXMLValueFallback(xml, key, defaultKey, cvtKey.."#stallRpm", "float", nil, 1350)
-		spec.fluidClutch.idleBiasFx = getXMLValueFallback(xml, key, defaultKey, cvtKey.."#idleBiasFx", "float", nil, 1)
-		spec.fluidClutch.clutchPercent = 1
-	end
-
-	
-	
-
 end
 
 -- process the inputs of the secondGroupSet Input Call
@@ -256,6 +228,8 @@ function realismAddon_gearbox_spec:onUpdate(dt)
 	
 		-- check if transmission is manual 
 		if realismAddon_gearbox_overrides.checkIsManual(motor) then
+
+
 		
 			if self:getIsMotorStarted() then
 				if self.isClient and self.spec_motorized.samples.blowOffValve ~= nil then
