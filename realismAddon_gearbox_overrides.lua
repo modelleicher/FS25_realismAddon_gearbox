@@ -342,7 +342,7 @@ function realismAddon_gearbox_overrides.update(self, superFunc, dt)
 			--self.lastMotorAvailableTorque = self.lastMotorAvailableTorque * clutchPercent
 
 			-- -- 
-			print("lastMotorAvailableTorque: "..tostring(self.lastMotorAvailableTorque))
+			--print("lastMotorAvailableTorque: "..tostring(self.lastMotorAvailableTorque))
 
 
 			local motorRotAcceleration = ((self.motorRotSpeed - lastMotorRotSpeed)+0.00001) / ((g_physicsDtNonInterpolated * 0.001)+0.00001) 	-- FS25 Fix add 0.00001 to avoid division by 0 error 

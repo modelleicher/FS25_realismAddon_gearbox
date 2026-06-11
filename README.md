@@ -38,6 +38,9 @@ Download FS25_realismAddon_gearbox.zip from the releases section and put it into
 
 # Changelog in FS25
 
+###### V 0.9.3.2
+- hotfix removed debug print
+
 ###### V 0.9.3.1
 - fixed Vehicle Debug Torque Curve being displayed wrongly (moved to another function to overwrite for clutch torque)
 - fixed infinite torque bug right at 10% clutch engagement

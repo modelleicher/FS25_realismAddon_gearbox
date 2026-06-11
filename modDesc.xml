@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" standalone="no" ?>
 <modDesc descVersion="105">
     <author>modelleicher</author>
-    <version>0.9.3.1</version>
+    <version>0.9.3.2</version>
     <title>
         <de>RealismAddon: Gearbox</de>
 		<en>RealismAddon: Gearbox</en>
@@ -31,6 +31,8 @@ Feature List:
 - added XML Support to change basegame Vehicle Gearbox Settings
 
 Changelog: 
+V 0.9.3.2
+- hotfix removed debug print
 
 V 0.9.3.1
 - fixed Vehicle Debug Torque Curve being displayed wrongly (moved to another function to overwrite for clutch torque)
