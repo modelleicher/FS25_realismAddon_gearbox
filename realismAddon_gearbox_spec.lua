@@ -9,7 +9,7 @@ end
 
 
 
---source(g_currentModDirectory.."gui/realismAddon_gearbox_gui.lua")
+source(g_currentModDirectory.."gui/realismAddon_gearbox_gui.lua")
 
 
 function realismAddon_gearbox_spec.registerEventListeners(vehicleType)

@@ -312,7 +312,7 @@ end
 function realismAddon_gearbox_spec_cvt:onWriteUpdateStream(streamId, connection, dirtyMask)
 	local spec = self.spec_realismAddon_gearbox
 
-	if connection:getIsServer() and realismAddon_gearbox_overrides.checkIsManual(motor) and spec.cvt ~= nil then 
+	if connection:getIsServer() and realismAddon_gearbox_overrides.checkIsManual(self.spec_motorized.motor) and spec.cvt ~= nil then 
 		if streamWriteBool(streamId, bitAND(dirtyMask, spec.synchCVTDirtyFlag) ~= 0) then
 			streamWriteUIntN(streamId, spec.cvt.cvtPercent * 100, 7)
 		end			
@@ -323,7 +323,7 @@ end
 function realismAddon_gearbox_spec_cvt:onReadUpdateStream(streamId, timestamp, connection)
 	local spec = self.spec_realismAddon_gearbox
 	
-	if not connection:getIsServer() and realismAddon_gearbox_overrides.checkIsManual(motor) and spec.cvt ~= nil then 
+	if not connection:getIsServer() and realismAddon_gearbox_overrides.checkIsManual(self.spec_motorized.motor) and spec.cvt ~= nil then 
 		if streamReadBool(streamId) then
 			spec.cvt.cvtPercent = streamReadUIntN(streamId, 7) / 100
 		end			

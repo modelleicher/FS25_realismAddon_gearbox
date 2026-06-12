@@ -38,6 +38,10 @@ Download FS25_realismAddon_gearbox.zip from the releases section and put it into
 
 # Changelog in FS25
 
+###### V 0.9.3.3
+only backup of current state, not working, no release creation, DO NOT USE 
+- bugfixing/improving on GUI/Settings but no result
+
 ###### V 0.9.3.2
 - hotfix removed debug print
 

@@ -31,8 +31,9 @@ end
 
 -- Callback for the OK Button, save settings and close the GUI 
 function realismAddon_gearbox_gui:yesButton_callback(state, table)
+    print("CLOSE BUTTON HIT")
     -- if we hit ok we need to save the settings again 
-    realismAddon_gearbox_settings:saveGlobalSettings()
+    realismAddon_gearbox_settings:saveGlobalSettings(true)
     self:close()
 end
 

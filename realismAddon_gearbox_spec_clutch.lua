@@ -57,7 +57,7 @@ function realismAddon_gearbox_spec_clutch:onLoad(savegame)
 
     spec.keyboardClutch.lastRpm = motor.minRpm
     spec.keyboardClutch.moving = false
-    spec.keyboardClutch.enabled = self:globalSettingsGetSet("spec_realismAddon_gearbox.keyboardClutch.enabled", false, true)
+    spec.keyboardClutch.enabled = self:globalSettingsGetSet("spec_realismAddon_gearbox.keyboardClutch.enabled", true, true)
 
    
     -- fluid clutch
@@ -231,8 +231,8 @@ function realismAddon_gearbox_spec_clutch:onUpdate(dt)
 		if manual then
 
             -- Keyboard Clutch Calculations 
-            if clutch then 
-                spec.keyboardClutch.enabled = true
+            if spec.keyboardClutch.enabled then 
+                --spec.keyboardClutch.enabled = true
 
 				local motor = self.spec_motorized.motor
 				local rpm = motor.lastRealMotorRpm
@@ -325,8 +325,6 @@ function realismAddon_gearbox_spec_clutch:onUpdate(dt)
 
                     end
                 end
-            else
-                spec.keyboardClutch.enabled = false
             end
 
 			

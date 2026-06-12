@@ -58,7 +58,7 @@ function realismAddon_gearbox_inputs.onRegisterActionEvents(self, isActiveForInp
 			end
 
 			-- gui
-			--self:addRealismAddonActionEvent("BUTTON_SINGLE_ACTION", "RAGB_GUI_OPEN", "GUI_OPEN")
+			self:addRealismAddonActionEvent("BUTTON_SINGLE_ACTION", "RAGB_GUI_OPEN", "GUI_OPEN")
 
 		
 		end
@@ -326,12 +326,7 @@ function realismAddon_gearbox_inputs:onWriteUpdateStream(streamId, connection, d
 		-- hand throttle
 		if streamWriteBool(streamId, bitAND(dirtyMask, spec.synchHandThrottleDirtyFlag) ~= 0) then
 			streamWriteUIntN(streamId, spec.handThrottlePercent * 100, 7)
-		end		
-
-		-- cvt 
-		if streamWriteBool(streamId, bitAND(dirtyMask, spec.synchCVTDirtyFlag) ~= 0) then
-			streamWriteUIntN(streamId, spec.cvtPercent * 100, 7)
-		end			
+		end				
 	end
 	
 end
@@ -343,12 +338,7 @@ function realismAddon_gearbox_inputs:onReadUpdateStream(streamId, timestamp, con
 		-- hand throttle
 		if streamReadBool(streamId) then
 			spec.handThrottlePercent = streamReadUIntN(streamId, 7) / 100
-		end		
-
-		-- cvt 
-		if streamReadBool(streamId) then
-			spec.cvtPercent = streamReadUIntN(streamId, 7) / 100
-		end			
+		end				
 	end
 	
 end
