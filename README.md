@@ -59,7 +59,6 @@ NOTES/TIPS regarding the latest update (pls read):
 
 BEWARE! The settings are vehicle specific! So you need to set them for each vehicle individually. 
 	the upside: that way you can simulate IRL brake-to-clutch or clutchbutton-on-shifter Features on vehicles that have that.
-	
 	of course the settings are saved.
 
 NOTE: RealismAddon Gearbox has always been focused on manual driving and manual clutching. If you want complete automation like "MANUAL" mode with default Giants
