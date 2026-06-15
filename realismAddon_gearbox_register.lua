@@ -2,7 +2,7 @@
 -- register realismAddon_gearbox specializations and insert to vehicles 
 
 -- realismAddon_gearbox_inputs contains everything related to local and global settings
-g_specializationManager:addSpecialization("realismAddon_gearbox_settings", "realismAddon_gearbox_settings", g_currentModDirectory.."realismAddon_gearbox_settings.lua")
+--g_specializationManager:addSpecialization("realismAddon_gearbox_settings", "realismAddon_gearbox_settings", g_currentModDirectory.."realismAddon_gearbox_settings.lua")
 -- realismAddon_gearbox_spec contains everything that needs to be in a spec (e.g. everything that is not an overwritten function)
 g_specializationManager:addSpecialization("realismAddon_gearbox_spec", "realismAddon_gearbox_spec", g_currentModDirectory.."realismAddon_gearbox_spec.lua")
 -- realismAddon_gearbox_spec_clutch contains all functions related to the various clutch calculations that aren't in the overwritten part 
@@ -32,7 +32,7 @@ function realismAddon_gearbox_register:register(name)
 			local realismAddon_gearbox_spec = false
 			local realismAddon_gearbox_spec_clutch = false
 			local realismAddon_gearbox_spec_cvt = false			
-			local realismAddon_gearbox_settings = false
+			--local realismAddon_gearbox_settings = false
 
 
 						
@@ -41,9 +41,9 @@ function realismAddon_gearbox_register:register(name)
 				if spec == "motorized" then -- check for motorized, only insert into motorized
 					motorized = true
 				end
-				if spec == "realismAddon_gearbox_settings" then -- don't insert if already inserted
-					realismAddon_gearbox_settings = true
-				end						
+				--if spec == "realismAddon_gearbox_settings" then -- don't insert if already inserted
+				--	realismAddon_gearbox_settings = true
+				--end						
 				if spec == "realismAddon_gearbox_inputs" then -- don't insert if already inserted
 					realismAddon_gearbox_inputs = true
 				end
@@ -59,9 +59,9 @@ function realismAddon_gearbox_register:register(name)
 				
 			end    
 			if motorized then
-				if not realismAddon_gearbox_settings then				
-					g_vehicleTypeManager:addSpecialization(vehicle.name, "FS25_realismAddon_gearbox.realismAddon_gearbox_settings")
-				end					
+				--if not realismAddon_gearbox_settings then				
+				--	g_vehicleTypeManager:addSpecialization(vehicle.name, "FS25_realismAddon_gearbox.realismAddon_gearbox_settings")
+				--end					
 				if not realismAddon_gearbox_spec then
 					g_vehicleTypeManager:addSpecialization(vehicle.name, "FS25_realismAddon_gearbox.realismAddon_gearbox_spec")
 				end		

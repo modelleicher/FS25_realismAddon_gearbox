@@ -87,8 +87,38 @@ function realismAddon_gearbox_spec_cvt:onLoad(savegame)
 	end   
 end
 
+function realismAddon_gearbox_spec_clutch:onReadStream(streamId, connection)
+    local spec = self.spec_realismAddon_gearbox
+    if spec.cvt ~= nil then
+        spec.cvt.cvtPercent = streamReadIntN(streamId, 8) * 0.01
+        spec.cvt.direction = streamReadIntN(streamId, 2)
+        spec.cvt.controlSpeed = streamReadIntN(streamId, 8) * 0.1
+
+        if spec.cvt.isVario then
+            spec.cvt.pressureValvePercentage = streamReadIntN(streamId, 8) * 0.01
+            spec.cvt.fluidClutchEmulation = streamReadBool(streamId)
+            spec.cvt.cruiseControlActive = streamReadBool(streamId)     
+            spec.cvt.cruiseControlSpeedKph = streamReadUIntN(streamId, 6)    
+        end
+    end    
+end
+function realismAddon_gearbox_spec_clutch:onWriteStream(streamId, connection)
+    local spec = self.spec_realismAddon_gearbox
+    if spec.cvt ~= nil then
+        streamWriteIntN(streamId, spec.cvt.cvtPercent * 100, 8)
+        streamWriteIntN(streamId, spec.cvt.direction, 2)
+        streamWriteIntN(streamId, spec.cvt.controlSpeed *10, 8)
+
+        if spec.cvt.isVario then
+            streamWriteIntN(streamId, spec.cvt.pressureValvePercentage * 100, 8)
+            streamWriteBool(streamId, spec.cvt.fluidClutchEmulation)
+            streamWriteBool(streamId, spec.cvt.cruiseControlActive)     
+            streamWriteUIntN(streamId, math.floor(spec.cvt.cruiseControlSpeedKph), 6)           
+        end
+    end
+end
+
 function realismAddon_gearbox_spec_cvt:processCVTControlInputs(direction)
-    --print("processCVTControlInputs: "..tostring(direction))  
     local spec = self.spec_realismAddon_gearbox   
     if spec.cvt ~= nil and not spec.cvt.neutral then
         local cvtPercent = spec.cvt.cvtPercent
@@ -100,6 +130,7 @@ function realismAddon_gearbox_spec_cvt:processCVTControlInputs(direction)
 
         if cvtPercent > 0 and spec.cvt.cvtPercent == 0 and spec.cvt.canChangeDirection then
             spec.cvt.direction = spec.cvt.direction * -1
+            setVarioDirectionEvent.sendEvent(self, spec.cvt.direction)
         end
 
         if spec.cvt.cvtPercent ~= cvtPercent then
@@ -117,7 +148,7 @@ varioInputType.CRUISE = 4
 varioInputType.NEUTRAL = 5
 
 function realismAddon_gearbox_spec_cvt:processVarioInputs(type, noEventSend)
-    setGroupSecondEvent.sendEvent(self, type, noEventSend)
+    setVarioJoystickProcessEvent.sendEvent(self, type, noEventSend)
     local spec = self.spec_realismAddon_gearbox
 
     if spec.cvt ~= nil and spec.cvt.isVario then
@@ -181,10 +212,8 @@ function realismAddon_gearbox_spec_cvt:onUpdate(dt)
 		if realismAddon_gearbox_overrides.checkIsManual(motor) then
             if spec.cvt ~= nil then
 
-
                 -- gen1 vario logic
                 if spec.cvt.isVario then
-                    --print("isVario")
 
                     -- pressure valve percentage calculation 
                     local motor = self.spec_motorized.motor
@@ -314,7 +343,9 @@ function realismAddon_gearbox_spec_cvt:onWriteUpdateStream(streamId, connection,
 
 	if connection:getIsServer() and realismAddon_gearbox_overrides.checkIsManual(self.spec_motorized.motor) and spec.cvt ~= nil then 
 		if streamWriteBool(streamId, bitAND(dirtyMask, spec.synchCVTDirtyFlag) ~= 0) then
-			streamWriteUIntN(streamId, spec.cvt.cvtPercent * 100, 7)
+			streamWriteIntN(streamId, spec.cvt.cvtPercent * 100, 8)
+
+            --print("onWriteUpdateStream vario "..tostring(spec.cvt.cvtPercent))          
 		end			
 	end
 	
@@ -325,7 +356,9 @@ function realismAddon_gearbox_spec_cvt:onReadUpdateStream(streamId, timestamp, c
 	
 	if not connection:getIsServer() and realismAddon_gearbox_overrides.checkIsManual(self.spec_motorized.motor) and spec.cvt ~= nil then 
 		if streamReadBool(streamId) then
-			spec.cvt.cvtPercent = streamReadUIntN(streamId, 7) / 100
+			spec.cvt.cvtPercent = streamReadIntN(streamId, 8) / 100
+
+            --print("onReadUpdateStream vario "..tostring(spec.cvt.cvtPercent))         
 		end			
 	end
 	
@@ -376,9 +409,60 @@ end
 function setVarioJoystickProcessEvent.sendEvent(object, type, noEventSend)
 	if noEventSend == nil or noEventSend == false then
 		if g_server ~= nil then
-			g_server:broadcastEvent(setGroupSecondEvent.new(object, type), nil, nil, object)			
+			g_server:broadcastEvent(setVarioJoystickProcessEvent.new(object, type), nil, nil, object)			
 		else
-			g_client:getServerConnection():sendEvent(setGroupSecondEvent.new(object, type))
+			g_client:getServerConnection():sendEvent(setVarioJoystickProcessEvent.new(object, type))
+		end
+	end
+end
+
+
+setVarioDirectionEvent = {}
+local setVarioDirectionEvent_mt = Class(setVarioDirectionEvent, Event)
+
+InitEventClass(setVarioDirectionEvent, "setVarioDirectionEvent")
+
+function setVarioDirectionEvent.emptyNew()
+	return Event.new(setVarioDirectionEvent_mt)
+end
+
+function setVarioDirectionEvent.new(object, dir)
+	local self = setVarioDirectionEvent.emptyNew()
+	self.object = object
+	self.dir = dir
+
+	return self
+end
+
+function setVarioDirectionEvent:readStream(streamId, connection)
+	self.object = NetworkUtil.readNodeObject(streamId)
+	self.dir = streamReadIntN(streamId, 2)
+
+	self:run(connection)
+end
+
+function setVarioDirectionEvent:writeStream(streamId, connection)
+	NetworkUtil.writeNodeObject(streamId, self.object)
+	streamWriteIntN(streamId, self.dir, 2)
+end
+
+function setVarioDirectionEvent:run(connection)
+	if not connection:getIsServer() then
+		g_server:broadcastEvent(self, false, connection, self.object)
+	end
+
+	if self.object ~= nil and self.object:getIsSynchronized() then
+        --print("direction: "..tostring(self.dir))
+		self.object.spec_realismAddon_gearbox.cvt.direction = self.dir
+	end
+end
+
+function setVarioDirectionEvent.sendEvent(object, dir, noEventSend)
+	if noEventSend == nil or noEventSend == false then
+		if g_server ~= nil then
+			g_server:broadcastEvent(setVarioDirectionEvent.new(object, dir), nil, nil, object)			
+		else
+			g_client:getServerConnection():sendEvent(setVarioDirectionEvent.new(object, dir))
 		end
 	end
 end

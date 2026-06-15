@@ -63,17 +63,16 @@ function realismAddon_gearbox_overrides.checkIsManual(motor)
 
 	local globalSetting = g_gameSettings:getValue(GameSettings.SETTING.GEAR_SHIFT_MODE)
 
+	--print(globalSetting)
+
 	--print("manual: "..tostring(manual).." manualClutch: "..tostring(manualClutch).." automatic: "..tostring(automatic))
 
-	local isManualShiftMode = motor.gearShiftMode == VehicleMotor.SHIFT_MODE_MANUAL_CLUTCH 
-
 	if isManualTransmission and localSettingManualClutch then
-		return true, nil
-	elseif isManualTransmission and localSettingManual then
-		return true, true
+		return true
 	else
-		return false, nil
+		return false
 	end
+
 
 end
 
@@ -207,7 +206,8 @@ function realismAddon_gearbox_overrides.getClutchPedal(self, superFunc)
 			override = math.max(override, 1-math.max(spec.fluidClutch.clutchPercent, FLUID_CLUTCH_IDLE_CLOSING_PERCENTAGE * spec.fluidClutch.idleBiasFx))
 		end
 
-		if spec.keyboardClutch.enabled then 
+		--print("t: "..tostring(spec.keyboardClutch_enableAutoOpen).." "..tostring(spec.keyboardClutch_enableAutoMovement))
+		if spec.keyboardClutch_enableAutoOpen or spec.keyboardClutch_enableAutoMovement then 
 			override = math.max(override, 1-spec.keyboardClutch.clutchPercent)
 		end
 
@@ -215,10 +215,16 @@ function realismAddon_gearbox_overrides.getClutchPedal(self, superFunc)
 			override = math.max(override, 1-spec.cvt.pressureValvePercentage)
 		end
 
-		-- take the max value between original, spec.override or local override
-		self.manualClutchValue = math.max(self.manualClutchValue, spec.clutchValueOverride, override)
+		if self.manualClutchValueRaw == nil then
+			self.manualClutchValueRaw = self.manualClutchValue
+		end
 
-		--print("manualClutchValue2: "..tostring(self.manualClutchValue))
+		-- take the max value between original, spec.override or local override
+		-- we use the raw value instead of original because otherwise in MP it can get stuck in an alway open loop feeding back on itself
+		-- not sure why this is only on Multiplayer but using the raw value fixes it 
+		self.manualClutchValue = math.max(self.manualClutchValueRaw, spec.clutchValueOverride, override)
+
+		--print("manualClutchValue: "..tostring(self.manualClutchValue).." override: "..tostring(override))
 
 		return self.manualClutchValue
 	else
@@ -245,7 +251,9 @@ VehicleMotor.onManualClutchChanged = Utils.overwrittenFunction(VehicleMotor.onMa
 -- V 0.9.3.1 change - moved from getTorqueCurveValue to getTorqueAndSpeedValues to fix visual bug in Debug Menu for torque curve showing
 function realismAddon_gearbox_overrides.getTorqueAndSpeedValues(self, superFunc)
 
+
 	if realismAddon_gearbox_overrides.checkIsManual(self) then
+
 		local speeds = {}
 		local torques = {}
 
@@ -307,6 +315,22 @@ VehicleMotor.getRequiredMotorRpmRange = Utils.overwrittenFunction(VehicleMotor.g
 
 -- overwrite VehicleMotor.update
 function realismAddon_gearbox_overrides.update(self, superFunc, dt)
+
+	if self.vehicle:getIsActive() then
+		local motor = self
+
+		local isManualTransmission = motor.backwardGears ~= nil or motor.forwardGears ~= nil	
+
+		local localSettingManual = motor.gearShiftMode == VehicleMotor.SHIFT_MODE_MANUAL
+		local localSettingManualClutch = motor.gearShiftMode == VehicleMotor.SHIFT_MODE_MANUAL_CLUTCH
+		local localSettingAutomatic = motor.gearShiftMode == VehicleMotor.SHIFT_MODE_AUTOMATIC
+
+		local globalSetting = g_gameSettings:getValue(GameSettings.SETTING.GEAR_SHIFT_MODE)
+
+		--print(globalSetting)
+
+		--print("isManualTransmission: "..tostring(isManualTransmission).." manual: "..tostring(localSettingManual).." manualClutch: "..tostring(localSettingManualClutch).." automatic: "..tostring(localSettingAutomatic))
+	end
 
 	-- do our custom stuff only if we are in SHIFT_MODE_MANUAL_CLUTCH and in a vehicle with manual transmission
 	if realismAddon_gearbox_overrides.checkIsManual(self) then	
@@ -412,6 +436,8 @@ function realismAddon_gearbox_overrides.update(self, superFunc, dt)
 			clampedMotorRpm = clampedMotorRpm * (clutchPercent^3) + (currentRpm * (1-(clutchPercent^3)))
 
 		else
+
+
 		
 			-- get clutch RPM shut off motor if RPM gets too low , disable "auto clutch" of FS
 			local clutchRpm = math.abs(self:getClutchRotSpeed() *  9.5493)
@@ -423,13 +449,13 @@ function realismAddon_gearbox_overrides.update(self, superFunc, dt)
 			
 			-- this doesn't work like that in FS22, so disable for now. Set clampedMotorRpm to minRpm if vehicle is stopped anyways ß
 			if clutchRpm <= 0 and vehicle.isServer then -- check if we're server 
-				vehicle:stopMotor()
+				--vehicle:stopMotor()
 				clampedMotorRpm = self.minRpm
 			end
 			
 			-- same as above 
 			if clampedMotorRpm <= 0 then
-				vehicle:stopMotor()
+				--vehicle:stopMotor()
 				clampedMotorRpm = self.minRpm
 				self.lastRealMotorRpm = self.minRpm
 			end
@@ -437,9 +463,31 @@ function realismAddon_gearbox_overrides.update(self, superFunc, dt)
 			-- clamp so no negative value 
 			clampedMotorRpm = math.max(clampedMotorRpm, 0)	
 		end
+
+
 		
 		-- finally set the new RPM values
 		if vehicle.isServer then	
+			-- engine stalling 
+			--print("self.lastMotorRpm: "..tostring(self.lastMotorRpm))
+			--print("clampedMotorRpm: "..tostring(clampedMotorRpm))
+			--print("self.lastRealMotorRpm: "..tostring(self.lastRealMotorRpm))
+			--print("self.equalizedMotorRpm: "..tostring(self.equalizedMotorRpm))
+			
+
+			if self.lastMotorRpm < self.minRpm * 0.5 then
+				if self.engineStallTimerME == nil then
+					self.engineStallTimerME = 200
+				else
+					self.engineStallTimerME = self.engineStallTimerME - dt
+				end
+				if self.engineStallTimerME <= 0 then
+					--vehicle:stopMotor()
+					self.engineStallTimerME = nil
+				end
+			else
+				self.engineStallTimerME = nil
+			end
 
 			-- setLastRpm does have some smoothing included 	
 			-- we do some smoothing before anyways because otherwise it will false-register fast rpm changes and inject load 

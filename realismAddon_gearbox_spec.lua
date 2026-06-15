@@ -64,6 +64,26 @@ function getXMLValueFallback(xml, key, defaultKey, path, type, propertyCheck, de
 	end
 end
 
+-- helper function to get savegame value fallback 
+function getXMLValueFallbackSavegame(savegame, key, type, defaultValue)
+	local value = nil
+	if savegame ~= nil and savegame.xmlFile ~= nil and savegame.xmlFile.handle then
+		if savegame.key ~= nil then
+			if type == "bool" then
+				value = getXMLBool(savegame.xmlFile.handle, savegame.key..key)
+			elseif type == "float" then
+				value = getXMLFloat(savegame.xmlFile.handle, savegame.key..key)
+			end
+		end
+	end
+	if value == nil then
+		return defaultValue
+	else
+		return value
+	end
+
+end
+
 function realismAddon_gearbox_spec:onLoad(savegame)
 
     self.spec_realismAddon_gearbox = {}

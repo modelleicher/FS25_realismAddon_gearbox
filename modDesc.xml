@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" standalone="no" ?>
 <modDesc descVersion="105">
     <author>modelleicher</author>
-    <version>0.9.3.3</version>
+    <version>0.9.3.4</version>
     <title>
         <de>RealismAddon: Gearbox</de>
 		<en>RealismAddon: Gearbox</en>
@@ -31,6 +31,44 @@ Feature List:
 - added XML Support to change basegame Vehicle Gearbox Settings
 
 Changelog: 
+
+V 0.9.3.4
+- severe bugfixing 
+- fixed Multiplayer Compatibility
+- fixed tractor stalling when it isn't supposed to #32
+- fixed "manual" setting issues (manual no longer activates realismAddonGearbox like before the last update) #33
+- fixed powershift not being able to shift with H-Shifter 
+- added GUI with 2 settings so far related to Keyboard Clutch / 2 Pedal Steering wheel clutch (e.g. Clutch using Button/Key instead of pedal) #33
+
+-------------------------------------
+NOTES/TIPS regarding this update (pls read):
+- UNLIKE THE LAST UPDATE "MANUAL" will no longer be the correct setting for keyboard players.
+	IF you want realismAddon Gearbox effects, you NEED to be on "MANUAL WITH CLUTCH" all other modes are not affected by this script.
+
+	What I did with the last update and the manual setting was stupid and had a lot of downsides. Instead now ->
+
+- there is now a GUI that can be opened using a Button/Button-Combination that can be bound in the Input settings
+- currently there are 2 options:
+	- auto clutch movement --> this calculates a clutch slowly opening/closing when you use a Key/Button to press the clutch
+							   this should be on by default, and it *should* not interfere even if you use a pedal because it knows.
+							   But if you have any weird clutch behaviour issues and you use a analog clutch pedal turn this off!
+
+	- auto clutch open --> this is to aid when playing on a keyboard. This is off by default. If you turn it on the following happens:
+							IF you hit the brake and the rpm is close to idle the clutch automatically opens. It stays open.
+							IF you hit the gas (even just a short press not holding) the clutch automatically closes
+							This way you can stop and start without having to hold the clutch button or shifting into neutral all the time.
+							Of course this also works when using pedals and steering wheel but it is mainly intended for keyboard players.
+
+BEWARE! The settings are vehicle specific! So you need to set them for each vehicle individually. 
+	the upside: that way you can simulate IRL brake-to-clutch or clutchbutton-on-shifter Features on vehicles that have that.
+	
+	of course the settings are saved.
+
+NOTE: RealismAddon Gearbox has always been focused on manual driving and manual clutching. If you want complete automation like "MANUAL" mode with default Giants
+this Mod does not support that currently while also having all the RealismAddon Gearbox Features. So if you want to experience this Mod you have to play on
+"MANUAL WITH CLUTCH" and you have to at least use a clutch button/key
+-------------------------------------
+
 V 0.9.3.2
 - hotfix removed debug print
 

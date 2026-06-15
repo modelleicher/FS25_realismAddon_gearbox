@@ -14,7 +14,6 @@ function realismAddon_gearbox_gui:new(target, customMt)
 	return YesNoDialog:new(nil, realismAddon_gearbox_gui_mt)
 end
 
-
 -- load and setup all relevant variables post loading the GUI
 function realismAddon_gearbox_gui.postNew(self, vehicle)
     self.vehicle = vehicle
@@ -23,45 +22,37 @@ function realismAddon_gearbox_gui.postNew(self, vehicle)
     self.yesButton.onClickCallback = realismAddon_gearbox_gui.yesButton_callback
 
     -- keyboard Clutch Toggle
-    self.ragb_keyboardClutch_toggle.onClickCallback = realismAddon_gearbox_gui.keyboardClutchToggle_callback
-    self.ragb_keyboardClutch_toggle:setIsChecked(self.vehicle:globalSettingsGet("spec_realismAddon_gearbox.keyboardClutch.enabled", true), true)   -- setIsChecked = true -> slider to the right 
+    self.ragb_keyboardClutch_autoOpen.onClickCallback = realismAddon_gearbox_gui.ragb_keyboardClutch_autoOpen_callback
+    self.ragb_keyboardClutch_autoOpen:setIsChecked(self.vehicle.spec_realismAddon_gearbox.keyboardClutch_enableAutoOpen, true)
 
+    self.ragb_keyboardClutch_autoMovement.onClickCallback = realismAddon_gearbox_gui.ragb_keyboardClutch_autoMovement_callback
+    self.ragb_keyboardClutch_autoMovement:setIsChecked(self.vehicle.spec_realismAddon_gearbox.keyboardClutch_enableAutoMovement, true)
 
 end
 
 -- Callback for the OK Button, save settings and close the GUI 
 function realismAddon_gearbox_gui:yesButton_callback(state, table)
-    print("CLOSE BUTTON HIT")
     -- if we hit ok we need to save the settings again 
-    realismAddon_gearbox_settings:saveGlobalSettings(true)
+    --realismAddon_gearbox_settings:saveGlobalSettings(true)
     self:close()
 end
 
 -- Keyboard Clutch Toggle 
-function realismAddon_gearbox_gui:keyboardClutchToggle_callback(state, table, test)
-    print("keyboardClutchToggle_callback CALLBACK"..tostring(state))
-    if state == 1 then                 -- target, value, isPlayerSpecific, force
-        self.vehicle:globalSettingsSet("spec_realismAddon_gearbox.keyboardClutch.enabled", false, nil, true)       
+function realismAddon_gearbox_gui:ragb_keyboardClutch_autoOpen_callback(state, table, test)
+    if state == 1 then    -- state 1 = off, state 2 = on 
+        self.vehicle:keyboardClutch_enableAutoOpen_set(false)       
     else
-        self.vehicle:globalSettingsSet("spec_realismAddon_gearbox.keyboardClutch.enabled", true, nil, true)  
+        self.vehicle:keyboardClutch_enableAutoOpen_set(true)  
     end
 end
 
-
-
-
-
-
-function realismAddon_gearbox_gui:testCallback(state, table, test)
-
-    print("TEST CALLBACK")
-    print(tostring(state))
-    print(tostring(table))  
-        for k, v in pairs(table) do
-        print(" - "..tostring(k).." - "..tostring(v))
-    end   
-    print(tostring(test))     
-    print("*************")   
+function realismAddon_gearbox_gui:ragb_keyboardClutch_autoMovement_callback(state, table, test)
+    if state == 1 then                 -- target, value, isPlayerSpecific, force
+        self.vehicle:keyboardClutch_enableAutoMovement_set(false)       
+    else
+        self.vehicle:keyboardClutch_enableAutoMovement_set(true)  
+    end
 end
+
 
 
